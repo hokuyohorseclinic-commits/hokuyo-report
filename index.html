@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="月次報告">
+<meta name="theme-color" content="#0f2f5e">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>北洋牧場 月次報告</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<style>
+:root{--navy:#0f2f5e;--navy2:#1b4585;--orange:#f97316;--bg:#f3f4f6;--line:#e5e7eb;--text:#111827;--mute:#6b7280;--ok:#065f46;--warn:#92400e;--err:#b91c1c}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;font-size:16px;line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit}
+[hidden]{display:none!important}
+.wrap{max-width:760px;margin:0 auto}
+header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px}
+.bar .row{display:flex;align-items:center;gap:10px}
+.bar h1{font-size:17px;margin:0;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .sub{font-size:12px;opacity:.85;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logo{width:34px;height:34px;border-radius:8px;background:#fff;color:var(--orange);font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+.back{background:rgba(255,255,255,.16);border:none;color:#fff;border-radius:8px;padding:8px 12px;font-size:15px;flex:none}
+.chip{border:none;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:700;color:#fff;background:rgba(255,255,255,.2);flex:none}
+.chip.pend{background:var(--orange)}
+.chip.err{background:var(--err)}
+.notice{font-size:13px;line-height:1.7;padding:10px 14px;color:#fff}
+.notice.err{background:var(--err)}
+.notice.warn{background:var(--warn)}
+.notice button{margin-top:6px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:6px;padding:6px 12px;font-size:13px}
+.tools{background:#fff;border-bottom:1px solid var(--line);padding:10px 14px;position:sticky;z-index:15}
+.seg{display:flex;background:var(--bg);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:none;background:none;border-radius:8px;padding:9px 4px;font-size:14px;font-weight:600;color:var(--mute)}
+.seg button.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.search{width:100%;margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
+.month{font-size:12px;color:var(--mute);margin-top:8px;display:flex;justify-content:space-between;gap:8px}
+.grp{padding:14px 14px 4px;font-size:13px;font-weight:700;color:var(--navy);display:flex;justify-content:space-between}
+.grp span{font-weight:500;color:var(--mute)}
+.list{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.horse{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:none;border-bottom:1px solid var(--line);padding:14px;min-height:64px}
+.horse:last-child{border-bottom:none}
+.horse:active{background:#eef2f7}
+.horse .nm{font-weight:700;font-size:17px;flex:1;min-width:0}
+.horse .nm small{display:block;font-weight:400;font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{font-size:11px;font-weight:700;border-radius:5px;padding:2px 7px;flex:none}
+.b-f{background:#d1fae5;color:#065f46}.b-y{background:#dbeafe;color:#1e40af}.b-b{background:#fce7f3;color:#9d174d}.b-e{background:#e5e7eb;color:#374151}
+.cnt{flex:none;text-align:right;font-size:13px;color:var(--mute);min-width:74px}
+.cnt b{display:block;font-size:15px;color:var(--text)}
+.cnt .sel{color:var(--orange);font-weight:700}
+.cnt.none b{color:#9ca3af;font-weight:500;font-size:13px}
+.empty{padding:40px 20px;text-align:center;color:var(--mute);font-size:14px;line-height:1.8}
+.shoot{padding:14px;display:flex;gap:10px;background:#fff;border-bottom:1px solid var(--line)}
+.btn{border:none;border-radius:12px;padding:16px 10px;font-size:17px;font-weight:700}
+.btn.main{flex:2;background:var(--orange);color:#fff}
+.btn.sub{flex:1;background:#fff;color:var(--navy);border:1.5px solid var(--navy);font-size:14px}
+.btn:active{opacity:.8}
+.mh{padding:14px 14px 6px;font-size:14px;font-weight:700;color:var(--navy);display:flex;justify-content:space-between;align-items:baseline}
+.mh span{font-size:12px;font-weight:500;color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:0 4px}
+@media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}}
+.ph{position:relative;aspect-ratio:1/1;background:#d1d5db;overflow:hidden;border-radius:4px}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph.on{outline:4px solid var(--orange);outline-offset:-4px}
+.ph .o{position:absolute;left:5px;bottom:5px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;font-weight:700;border-radius:4px;padding:1px 6px}
+.ph .d{position:absolute;right:5px;bottom:5px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;border-radius:4px;padding:1px 6px}
+.ph .w{position:absolute;left:5px;top:5px;background:var(--warn);color:#fff;font-size:10px;font-weight:700;border-radius:4px;padding:1px 6px}
+.ph .star{position:absolute;right:0;top:0;width:46px;height:46px;border:none;background:none;display:flex;align-items:flex-start;justify-content:flex-end;padding:5px}
+.ph .star i{width:28px;height:28px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.35);color:transparent;font-style:normal;font-size:16px;line-height:24px;text-align:center;font-weight:800}
+.ph.on .star i{background:var(--orange);color:#fff}
+.hint{font-size:12px;color:var(--mute);padding:10px 14px 0;line-height:1.7}
+#viewer{position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column}
+#viewer .top{display:flex;justify-content:space-between;align-items:center;color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;font-size:13px;gap:10px}
+#viewer .img{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+#viewer .img img{max-width:100%;max-height:100%;object-fit:contain}
+#viewer .bot{display:flex;gap:10px;padding:12px 14px calc(env(safe-area-inset-bottom) + 12px)}
+#viewer .bot button{flex:1;border-radius:12px;border:1.5px solid #fff;background:none;color:#fff;padding:13px 6px;font-size:15px;font-weight:700}
+#viewer .bot button.on{background:var(--orange);border-color:var(--orange)}
+#viewer .bot button.del{flex:none;width:84px;border-color:#f87171;color:#fca5a5}
+#viewer .x{background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:8px;padding:8px 14px;font-size:15px}
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);transform:translateX(-50%);background:rgba(17,24,39,.92);color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;z-index:60;max-width:90vw;text-align:center}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+#login form{width:100%;max-width:380px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+#login label{display:block;font-size:13px;font-weight:600;color:#374151;margin:12px 0 4px}
+#login input{width:100%;border:1px solid #d1d5db;border-radius:10px;padding:11px 12px}
+#login .go{width:100%;margin-top:18px;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:13px;font-weight:700}
+#login .go:disabled{background:#9ca3af}
+#login .e{color:var(--err);font-size:13px;margin:10px 0 0}
+#login .lnk{margin-top:12px;background:none;border:none;color:var(--navy2);font-size:13px;padding:0}
+.panel{background:#fff;border-bottom:1px solid var(--line);padding:12px 14px;font-size:13px;line-height:1.9;color:#374151}
+.panel button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font-size:13px;margin:6px 8px 0 0}
+</style>
+</head>
+<body>
+
+<div id="boot" class="empty">読み込み中…</div>
+
+<div id="login" hidden>
+  <form id="loginForm">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div class="logo" style="background:var(--navy)">北</div>
+      <div><div style="font-weight:700;font-size:17px">北洋牧場 月次報告</div><div style="font-size:12px;color:var(--mute)">カルテ・牧場管理と同じアカウントでログイン</div></div>
+    </div>
+    <label for="em">メールアドレス</label><input id="em" type="email" autocomplete="username">
+    <label for="pw">パスワード</label><input id="pw" type="password" autocomplete="current-password">
+    <p class="e" id="loginErr" hidden></p>
+    <button class="go" id="loginBtn" type="submit">ログイン</button>
+    <button class="lnk" id="resetBtn" type="button">パスワードを忘れた場合</button>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <header class="bar" id="bar">
+    <div class="wrap">
+      <div class="row">
+        <button class="back" id="backBtn" hidden>‹ 一覧</button>
+        <div class="logo" id="logo">北</div>
+        <div style="flex:1;min-width:0"><h1 id="title">月次報告 写真</h1><div class="sub" id="subtitle"></div></div>
+        <button class="chip" id="syncChip">保存済み</button>
+      </div>
+    </div>
+  </header>
+  <div id="notice"></div>
+  <div id="panel" class="panel" hidden></div>
+
+  <main class="wrap">
+    <section id="home">
+      <div class="tools" id="tools">
+        <div class="seg" id="seg">
+          <button data-f="young">当歳・一才</button>
+          <button data-f="mare">繁殖</button>
+          <button data-f="all">全頭</button>
+        </div>
+        <input class="search" id="q" type="search" placeholder="馬名・オーナーで探す" autocomplete="off">
+        <div class="month"><span id="monthLabel"></span><span id="monthStat"></span></div>
+      </div>
+      <div id="list"></div>
+    </section>
+
+    <section id="horse" hidden>
+      <div class="shoot">
+        <button class="btn main" id="shootBtn">📷 撮る</button>
+        <button class="btn sub" id="pickBtn">アルバムから</button>
+      </div>
+      <div class="hint">撮った写真はこの馬に紐づいて保存されます。報告に使う写真は右上の ○ をタップして選びます。</div>
+      <div id="photos"></div>
+    </section>
+  </main>
+</div>
+
+<input id="cam" type="file" accept="image/*" capture="environment" hidden>
+<input id="lib" type="file" accept="image/*" multiple hidden>
+
+<div id="viewer" hidden>
+  <div class="top"><span id="vInfo" style="flex:1;min-width:0"></span><label style="display:flex;align-items:center;gap:6px;flex:none">撮影日<input id="vDate" type="date" style="border:none;border-radius:8px;padding:6px 8px;font-size:14px;background:#fff;color:#111"></label><button class="x" id="vClose">閉じる</button></div>
+  <div class="img"><img id="vImg" alt=""></div>
+  <div class="bot"><button id="vSel">報告に使う</button><button class="del" id="vDel">削除</button></div>
+</div>
+<div id="toast" hidden></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   北洋牧場 月次報告アプリ  第1段階：撮る・貯める・選ぶ
+   ・Firebase プロジェクト hokuyo-emr に相乗り（ログインはカルテ／牧場管理と共通）
+   ・馬とオーナーは牧場管理アプリの farm_data/horses を「読むだけ」（書き込みはしない）
+   ・写真本体は Firebase Storage（farm_photos/馬ID/…）、写真の情報は Firestore（farm_photos）
+   ・電波が悪いときは端末内にためておき、つながったら自動で送る
+   ===================================================================== */
+const APP_VER="1.2", APP_BUILD="2026-09-30";
+const FB_CONFIG={apiKey:"AIzaSyCpBn2haBU1zEIepTpCwF8KeL5v_2_Lnzc",authDomain:"hokuyo-emr.firebaseapp.com",projectId:"hokuyo-emr",storageBucket:"hokuyo-emr.firebasestorage.app",messagingSenderId:"687686923750",appId:"1:687686923750:web:34853b887e5873f7fe9227"};
+const COL_HORSES="farm_data", DOC_HORSES="horses";   // 牧場管理アプリのデータ（読み取り専用）
+const COL_PHOTOS="farm_photos";                      // このアプリの写真情報
+const ST_DIR="farm_photos";                          // Storage のフォルダ
+const LONG_EDGE=1600, JPEG_Q=0.85, THUMB_EDGE=400, THUMB_Q=0.7;
+const LS_HORSES="hr_horses_cache", LS_FILTER="hr_filter";
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad=n=>String(n).padStart(2,"0");
+const ymOf=t=>{const d=new Date(t);return d.getFullYear()+"-"+pad(d.getMonth()+1)};
+const ymLabel=ym=>{const[y,m]=ym.split("-");return y+"年"+Number(m)+"月"};
+const dayLabel=t=>{const d=new Date(t);return (d.getMonth()+1)+"/"+d.getDate()};
+const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+
+/* ---------- 状態 ---------- */
+const S={user:null,horses:[],horsesFrom:"",monthPhotos:[],horsePhotos:[],queue:[],view:"home",horseId:null,
+  filter:lsGet(LS_FILTER)||"young",q:"",uploading:false,upErr:null,dataErr:null,viewer:null,panel:false,online:navigator.onLine};
+let fbAuth=null,fbDb=null,fbSt=null,FB_ERR=null;
+let unsubHorses=null,unsubMonth=null,unsubHorse=null;
+const thumbUrls=new Map();   // 送信待ち写真のサムネイル（端末内）
+
+/* ---------- Firebase ---------- */
+try{
+  if(typeof firebase==="undefined")throw new Error("Firebase を読み込めませんでした");
+  if(!firebase.apps.length)firebase.initializeApp(FB_CONFIG);
+  fbAuth=firebase.auth();fbDb=firebase.firestore();fbSt=firebase.storage();
+  try{fbSt.setMaxUploadRetryTime(20000);fbSt.setMaxOperationRetryTime(20000)}catch(e){}
+}catch(e){FB_ERR=e.message||String(e)}
+
+function errMsg(e){
+  const c=(e&&e.code)||"";const m=(e&&e.message)||String(e);
+  if(c==="storage/unauthorized")return "写真の保存先（Firebase Storage）のルールで拒否されました。ログイン済みユーザーに farm_photos の読み書きを許可する設定が必要です。";
+  if(c==="storage/bucket-not-found"||c==="storage/project-not-found"||c==="storage/object-not-found"||/404|not\s*found|does not exist/i.test(m))return "写真の保存先（Firebase Storage）がまだ使える状態になっていません。Firebase コンソールで Storage を有効にしてください。";
+  if(c==="storage/retry-limit-exceeded"||c==="storage/canceled"||c==="unavailable"||/network/i.test(m))return "電波が弱く、送信できませんでした。つながったら自動で送り直します。";
+  if(c==="storage/quota-exceeded")return "保存容量の上限に達しました。";
+  if(c==="permission-denied")return "Firestore のルールで拒否されました。farm_photos コレクションの読み書き許可が必要です。";
+  if(c==="storage/unknown")return "写真の保存先（Firebase Storage）に保存できませんでした。Storage が有効になっているか確認してください。";
+  return m;
+}
+
+/* ---------- 端末内の送信待ち置き場（IndexedDB） ---------- */
+let idbP=null;
+function idb(){
+  if(idbP)return idbP;
+  idbP=new Promise((res,rej)=>{
+    const r=indexedDB.open("hokuyo_report",1);
+    r.onupgradeneeded=()=>{r.result.createObjectStore("queue",{keyPath:"id"})};
+    r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
+  });
+  return idbP;
+}
+function qTx(mode,fn){
+  return idb().then(db=>new Promise((res,rej)=>{
+    const tx=db.transaction("queue",mode);const st=tx.objectStore("queue");
+    const rq=fn(st);
+    tx.oncomplete=()=>res(rq&&rq.result);tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error);
+  }));
+}
+const qPut=rec=>qTx("readwrite",st=>st.put(rec));
+const qGet=id=>qTx("readonly",st=>st.get(id));
+const qDel=id=>qTx("readwrite",st=>st.delete(id));
+const qAll=()=>qTx("readonly",st=>st.getAll());
+function metaOf(rec){
+  if(!thumbUrls.has(rec.id))thumbUrls.set(rec.id,URL.createObjectURL(new Blob([rec.thumb],{type:"image/jpeg"})));
+  return{id:rec.id,horseId:rec.horseId,horseName:rec.horseName,owner:rec.owner,cat:rec.cat,takenAt:rec.takenAt,ym:rec.ym,w:rec.w,h:rec.h,orient:rec.orient,selected:!!rec.selected,thumbUrl:thumbUrls.get(rec.id),queued:true};
+}
+function dropThumb(id){const u=thumbUrls.get(id);if(u){URL.revokeObjectURL(u);thumbUrls.delete(id)}}
+async function loadQueue(){
+  try{const all=await qAll();S.queue=(all||[]).map(metaOf)}catch(e){console.warn("queue",e);S.queue=[]}
+}
+
+/* ---------- 画像の縮小 ---------- */
+function loadImage(file){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file);const im=new Image();
+    im.onload=()=>{res({im,url})};
+    im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error("この画像は読み込めませんでした"))};
+    im.src=url;
+  });
+}
+function drawTo(im,edge,q){
+  const W=im.naturalWidth,H=im.naturalHeight;const k=Math.min(1,edge/Math.max(W,H));
+  const w=Math.max(1,Math.round(W*k)),h=Math.max(1,Math.round(H*k));
+  const cv=document.createElement("canvas");cv.width=w;cv.height=h;
+  const cx=cv.getContext("2d");cx.imageSmoothingQuality="high";cx.drawImage(im,0,0,w,h);
+  return new Promise((res,rej)=>cv.toBlob(b=>{cv.width=cv.height=0;b?res({blob:b,w,h}):rej(new Error("画像を変換できませんでした"))},"image/jpeg",q));
+}
+async function shrink(file){
+  const{im,url}=await loadImage(file);
+  try{
+    const big=await drawTo(im,LONG_EDGE,JPEG_Q);
+    const th=await drawTo(im,THUMB_EDGE,THUMB_Q);
+    return{buf:await big.blob.arrayBuffer(),thumb:await th.blob.arrayBuffer(),w:big.w,h:big.h};
+  }finally{URL.revokeObjectURL(url)}
+}
+/* 写真に記録されている撮影日時（EXIF）を読む。無ければ null
+   JPEG でも HEIC（iPhone の標準形式）でも、ファイル先頭付近の "Exif" 目印を探して読む */
+async function exifDate(file){
+  try{
+    const u=new Uint8Array(await file.slice(0,1048576).arrayBuffer());const v=new DataView(u.buffer);
+    const N=u.length;
+    for(let i=0;i+20<N;i++){
+      if(u[i]!==0x45||u[i+1]!==0x78||u[i+2]!==0x69||u[i+3]!==0x66||u[i+4]!==0||u[i+5]!==0)continue;
+      const t=i+6;const le=u[t]===0x49&&u[t+1]===0x49,be=u[t]===0x4D&&u[t+1]===0x4D;
+      if(!le&&!be)continue;
+      if(v.getUint16(t+2,le)!==42)continue;
+      const u16=p=>v.getUint16(p,le),u32=p=>v.getUint32(p,le);
+      const str=(p,n)=>{let x="";for(let k=0;k<n&&p+k<N;k++){const c=u[p+k];if(!c)break;x+=String.fromCharCode(c)}return x};
+      const scan=(ifd,tags)=>{const out={};if(ifd+2>N)return out;const n=u16(ifd);
+        for(let k=0;k<n;k++){const e=ifd+2+k*12;if(e+12>N)break;const tag=u16(e);if(tags.includes(tag))out[tag]={cnt:u32(e+4),val:u32(e+8)}}return out};
+      const a=scan(t+u32(t+4),[0x8769,0x0132]);let ds=null;
+      if(a[0x8769]){const b=scan(t+a[0x8769].val,[0x9003,0x9004]);const d=b[0x9003]||b[0x9004];if(d)ds=str(t+d.val,d.cnt)}
+      if(!ds&&a[0x0132])ds=str(t+a[0x0132].val,a[0x0132].cnt);
+      const m=ds&&ds.match(/^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+      if(!m||m[1]==="0000")continue;
+      const d=new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]).getTime();
+      if(!isNaN(d)&&d<=Date.now()+86400000)return d;
+    }
+  }catch(e){console.warn("exif",e)}
+  return null;
+}
+function orientOf(w,h){const r=w/h;return r>1.1?"横":r<0.9?"縦":"正方"}
+
+/* ---------- 馬の一覧（牧場管理のデータを読むだけ） ---------- */
+function isActive(h){return !h.exit||String(h.exit)>=todayStr()}
+function ownerLabel(h){
+  if(h.isShared)return "北洋牧場（共有"+(h.coOwner?"："+h.coOwner:"")+"）";
+  if(h.selfOwned)return "北洋牧場（自己所有）";
+  return h.owner||"（オーナー未設定）";
+}
+function ownerRank(h){return h.isShared?1:h.selfOwned?2:0}
+function catClass(c){return c==="当歳"?"b-f":c==="一才"?"b-y":c==="繁殖"?"b-b":"b-e"}
+const CAT_ORD={"当歳":0,"一才":1,"育成":2,"繁殖":3};
+function horseById(id){return S.horses.find(h=>String(h.id)===String(id))}
+function setHorses(arr,from){
+  S.horses=(Array.isArray(arr)?arr:[]).filter(h=>h&&h.id!=null&&h.name);S.horsesFrom=from;
+}
+function listenHorses(){
+  const cached=lsGet(LS_HORSES);
+  if(cached){try{setHorses(JSON.parse(cached),"cache")}catch(e){}}
+  unsubHorses=fbDb.collection(COL_HORSES).doc(DOC_HORSES).onSnapshot(snap=>{
+    const d=snap.exists?snap.data():null;
+    if(d&&d.json){try{setHorses(JSON.parse(d.json),"cloud");lsSet(LS_HORSES,d.json);S.dataErr=null}catch(e){S.dataErr="馬のデータを読めませんでした"}}
+    else if(!snap.metadata.fromCache){setHorses([],"cloud")}
+    render();
+  },e=>{console.error(e);S.dataErr=errMsg(e);render()});
+}
+function listenMonth(){
+  if(unsubMonth)unsubMonth();
+  const ym=ymOf(Date.now());S.monthYm=ym;
+  unsubMonth=fbDb.collection(COL_PHOTOS).where("ym","==",ym).onSnapshot(snap=>{
+    S.monthPhotos=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(S.view==="home")renderHome();
+  },e=>{console.error(e);S.dataErr=errMsg(e);render()});
+}
+function listenHorse(id){
+  if(unsubHorse){unsubHorse();unsubHorse=null}
+  S.horsePhotos=[];S.horseLoaded=false;
+  if(id==null)return;
+  unsubHorse=fbDb.collection(COL_PHOTOS).where("horseId","==",String(id)).onSnapshot(snap=>{
+    S.horsePhotos=snap.docs.map(d=>({id:d.id,...d.data()}));S.horseLoaded=true;
+    if(S.view==="horse")renderHorse();
+    if(S.viewer)renderViewer();
+  },e=>{console.error(e);S.horseLoaded=true;S.dataErr=errMsg(e);render()});
+}
+
+/* ---------- 撮影 → 縮小 → 端末に保存 → 送信 ---------- */
+async function addFiles(files,fromCamera){
+  const h=horseById(S.horseId);if(!h||!files||!files.length)return;
+  let ok=0,last="",noDate=0;
+  for(const f of Array.from(files)){
+    try{
+      toast("保存中…",0);
+      const r=await shrink(f);
+      let takenAt=Date.now();
+      if(!fromCamera){
+        const ex=await exifDate(f);
+        if(ex)takenAt=ex;
+        else{noDate++;if(f.lastModified&&Date.now()-f.lastModified>3600000)takenAt=f.lastModified}   // 撮影日が無ければファイルの日付を仮に使う
+      }
+      const id=takenAt+"_"+Math.random().toString(36).slice(2,8);
+      const rec={id,horseId:String(h.id),horseName:h.name,owner:ownerLabel(h),cat:h.cat||"",takenAt,ym:ymOf(takenAt),w:r.w,h:r.h,orient:orientOf(r.w,r.h),selected:false,buf:r.buf,thumb:r.thumb};
+      await qPut(rec);
+      S.queue.push(metaOf(rec));ok++;last=rec.orient;
+      renderHorse();renderSync();
+    }catch(e){console.error(e);toast(e.message||"保存できませんでした");}
+  }
+  if(ok)toast(noDate?"撮影日が記録されていない写真が "+noDate+" 枚ありました。仮の日付で保存したので、写真を開いて「撮影日」を確認してください。":ok===1?"保存しました（"+last+"）":ok+"枚 保存しました",noDate?6000:undefined);
+  pump();
+}
+async function pump(){
+  if(S.uploading||!S.user||!fbSt||!navigator.onLine)return;
+  S.uploading=true;S.upErr=null;renderSync();
+  try{
+    const ids=S.queue.slice().sort((a,b)=>a.takenAt-b.takenAt).map(x=>x.id);
+    for(const id of ids){
+      const rec=await qGet(id);
+      if(!rec){S.queue=S.queue.filter(x=>x.id!==id);continue}
+      const base=ST_DIR+"/"+rec.horseId+"/"+rec.id;
+      const meta={contentType:"image/jpeg",cacheControl:"private, max-age=31536000"};
+      const r1=fbSt.ref(base+".jpg");await r1.put(new Blob([rec.buf],{type:"image/jpeg"}),meta);
+      const url=await r1.getDownloadURL();
+      const r2=fbSt.ref(base+"_t.jpg");await r2.put(new Blob([rec.thumb],{type:"image/jpeg"}),meta);
+      const thumbUrl=await r2.getDownloadURL();
+      const cur=(await qGet(id))||rec;   // 送信中に選択が変わっていれば反映
+      await fbDb.collection(COL_PHOTOS).doc(rec.id).set({
+        horseId:rec.horseId,horseName:rec.horseName,owner:rec.owner,cat:rec.cat,takenAt:rec.takenAt,ym:rec.ym,
+        w:rec.w,h:rec.h,orient:rec.orient,selected:!!cur.selected,url,thumbUrl,path:base+".jpg",thumbPath:base+"_t.jpg",
+        by:(S.user&&S.user.email)||"",at:Date.now()
+      });
+      await qDel(id);dropThumb(id);
+      S.queue=S.queue.filter(x=>x.id!==id);
+      render();
+    }
+  }catch(e){console.error(e);S.upErr=errMsg(e)}
+  S.uploading=false;render();
+}
+
+/* ---------- 選ぶ・消す ---------- */
+function findPhoto(id){return S.queue.find(p=>p.id===id)||S.horsePhotos.find(p=>p.id===id)}
+async function toggleSel(id){
+  const p=findPhoto(id);if(!p)return;const v=!p.selected;
+  try{
+    if(p.queued){const rec=await qGet(id);if(rec){rec.selected=v;await qPut(rec)}p.selected=v;render()}
+    else{p.selected=v;render();await fbDb.collection(COL_PHOTOS).doc(id).update({selected:v})}
+  }catch(e){console.error(e);toast(errMsg(e))}
+}
+async function changeDate(id,ds){
+  const p=findPhoto(id);const m=ds&&ds.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!p||!m)return;
+  const o=new Date(p.takenAt);
+  const t=new Date(+m[1],+m[2]-1,+m[3],o.getHours(),o.getMinutes(),o.getSeconds()).getTime();
+  if(isNaN(t)||t===p.takenAt)return;
+  try{
+    if(p.queued){const rec=await qGet(id);if(rec){rec.takenAt=t;rec.ym=ymOf(t);await qPut(rec)}p.takenAt=t;p.ym=ymOf(t)}
+    else{p.takenAt=t;p.ym=ymOf(t);await fbDb.collection(COL_PHOTOS).doc(id).update({takenAt:t,ym:ymOf(t)})}
+    render();toast("日付を "+(+m[1])+"/"+(+m[2])+"/"+(+m[3])+" に変更しました");
+  }catch(e){console.error(e);toast(errMsg(e))}
+}
+async function delPhoto(id){
+  const p=findPhoto(id);if(!p)return;
+  if(!confirm("この写真を削除しますか？\n（元に戻せません）"))return;
+  try{
+    if(p.queued){await qDel(id);dropThumb(id);S.queue=S.queue.filter(x=>x.id!==id)}
+    else{
+      await fbDb.collection(COL_PHOTOS).doc(id).delete();
+      [p.path,p.thumbPath].forEach(x=>{if(x)fbSt.ref(x).delete().catch(e=>console.warn("storage delete",e))});
+    }
+    closeViewer();render();toast("削除しました");
+  }catch(e){console.error(e);toast(errMsg(e))}
+}
+
+/* ---------- 画面 ---------- */
+function toast(msg,ms){
+  const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.t);
+  if(ms!==0)toast.t=setTimeout(()=>{t.hidden=true},ms||2200);
+}
+function render(){
+  $("boot").hidden=true;
+  if(!fbAuth){$("boot").hidden=false;$("boot").innerHTML="<b>クラウドに接続できません</b><br>"+esc(FB_ERR)+"<br>インターネット接続を確認して、再読み込みしてください。";return}
+  $("login").hidden=!!S.user;$("app").hidden=!S.user;
+  if(!S.user)return;
+  $("home").hidden=S.view!=="home";$("horse").hidden=S.view!=="horse";
+  $("backBtn").hidden=S.view==="home";$("logo").hidden=S.view!=="home";
+  renderSync();
+  if(S.view==="home")renderHome();else renderHorse();
+  if(S.viewer)renderViewer();
+  $("tools").style.top=$("bar").offsetHeight+"px";
+}
+function renderSync(){
+  const n=S.queue.length;const c=$("syncChip");
+  c.className="chip"+(S.upErr&&n?" err":n?" pend":"");
+  c.textContent=n?(S.uploading?"送信中 "+n:"送信待ち "+n):"保存済み";
+  let html="";
+  if(S.dataErr)html+='<div class="notice err">'+esc(S.dataErr)+"</div>";
+  if(S.upErr&&n)html+='<div class="notice err">'+esc(S.upErr)+"<br>写真 "+n+' 枚はこの端末に残っています（消えていません）。<br><button id="retryBtn">もう一度送る</button></div>';
+  else if(!S.online&&n)html+='<div class="notice warn">オフラインです。写真 '+n+" 枚はこの端末にためてあり、つながると自動で送信します。</div>";
+  $("notice").innerHTML=html;
+  const p=$("panel");p.hidden=!S.panel;
+  if(S.panel)p.innerHTML="ログイン："+esc(S.user.email)+"<br>登録馬："+S.horses.length+" 頭（牧場管理のデータを参照・"+(S.horsesFrom==="cloud"?"最新":"前回の控え")+"）<br>送信待ち："+n+" 枚<br>バージョン："+APP_VER+"（"+APP_BUILD+'）<br><button id="pumpBtn">今すぐ送信</button><button id="reloadBtn">再読み込み</button><button id="logoutBtn">ログアウト</button>';
+}
+function monthCounts(){
+  const m={};const add=p=>{const k=String(p.horseId);(m[k]=m[k]||{n:0,s:0}).n++;if(p.selected)m[k].s++};
+  S.monthPhotos.forEach(add);S.queue.filter(p=>p.ym===S.monthYm).forEach(add);return m;
+}
+function renderHome(){
+  $("title").textContent="月次報告 写真";$("subtitle").textContent="馬をタップして撮影";
+  document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on",b.dataset.f===S.filter));
+  const cnt=monthCounts();
+  const q=S.q.trim().toLowerCase();
+  let hs=S.horses.filter(isActive);
+  if(S.filter==="young")hs=hs.filter(h=>h.cat==="当歳"||h.cat==="一才");
+  else if(S.filter==="mare")hs=hs.filter(h=>h.cat==="繁殖");
+  if(q)hs=hs.filter(h=>[h.name,h.owner,h.coOwner,h.mother,h.sire].some(x=>String(x||"").toLowerCase().includes(q)));
+  const done=hs.filter(h=>cnt[String(h.id)]).length;
+  $("monthLabel").textContent=ymLabel(S.monthYm||ymOf(Date.now()))+" の撮影";
+  $("monthStat").textContent=hs.length?"撮影済み "+done+" / "+hs.length+" 頭":"";
+  if(!hs.length){
+    $("list").innerHTML='<div class="empty">'+(S.horses.length?"該当する馬がいません。<br>上の切り替えや検索を変えてみてください。":S.horsesFrom?"牧場管理アプリに馬が登録されていません。":"馬の一覧を読み込んでいます…")+"</div>";return;
+  }
+  const groups=new Map();
+  hs.forEach(h=>{const k=ownerLabel(h);if(!groups.has(k))groups.set(k,{rank:ownerRank(h),list:[]});groups.get(k).list.push(h)});
+  const keys=[...groups.keys()].sort((a,b)=>groups.get(a).rank-groups.get(b).rank||a.localeCompare(b,"ja"));
+  let html="";
+  keys.forEach(k=>{
+    const list=groups.get(k).list.sort((a,b)=>((CAT_ORD[a.cat]??9)-(CAT_ORD[b.cat]??9))||String(a.name).localeCompare(String(b.name),"ja"));
+    html+='<div class="grp">'+esc(k)+"<span>"+list.length+' 頭</span></div><div class="list">';
+    list.forEach(h=>{
+      const c=cnt[String(h.id)];
+      const ped=[h.sire?"父 "+h.sire:"",h.mother?"母 "+h.mother:""].filter(Boolean).join("　");
+      html+='<button class="horse" data-id="'+esc(h.id)+'"><span class="badge '+catClass(h.cat)+'">'+esc(h.cat||"—")+'</span><span class="nm">'+esc(h.name)+(ped?"<small>"+esc(ped)+"</small>":"")+"</span>"+
+        (c?'<span class="cnt"><b>'+c.n+" 枚</b>"+(c.s?'<span class="sel">選択 '+c.s+"</span>":"選択なし")+"</span>":'<span class="cnt none"><b>未撮影</b></span>')+"</button>";
+    });
+    html+="</div>";
+  });
+  $("list").innerHTML=html+'<div style="height:40px"></div>';
+}
+function horsePhotosAll(){
+  const id=String(S.horseId);
+  return S.queue.filter(p=>p.horseId===id).concat(S.horsePhotos).sort((a,b)=>b.takenAt-a.takenAt);
+}
+function renderHorse(){
+  const h=horseById(S.horseId);
+  $("title").textContent=h?h.name:"（馬が見つかりません）";
+  $("subtitle").textContent=h?[h.cat,ownerLabel(h)].filter(Boolean).join("・"):"";
+  const ps=horsePhotosAll();
+  $("shootBtn").textContent=ps.some(p=>p.ym===S.monthYm)?"📷 続けて撮る":"📷 撮る";
+  if(!ps.length){$("photos").innerHTML='<div class="empty">'+(S.horseLoaded?"まだ写真がありません。<br>「撮る」で撮影すると、この馬の写真としてたまっていきます。":"読み込み中…")+"</div>";return}
+  const byYm=new Map();ps.forEach(p=>{if(!byYm.has(p.ym))byYm.set(p.ym,[]);byYm.get(p.ym).push(p)});
+  let html="";
+  [...byYm.keys()].sort().reverse().forEach(ym=>{
+    const list=byYm.get(ym);const s=list.filter(p=>p.selected).length;
+    html+='<div class="mh">'+ymLabel(ym)+"<span>"+list.length+" 枚"+(s?"・選択 "+s:"")+'</span></div><div class="grid">';
+    list.forEach(p=>{
+      html+='<div class="ph'+(p.selected?" on":"")+'" data-id="'+esc(p.id)+'"><img loading="lazy" src="'+esc(p.thumbUrl)+'" alt="">'+
+        (p.queued?'<span class="w">送信待ち</span>':"")+'<span class="o">'+esc(p.orient)+'</span><span class="d">'+dayLabel(p.takenAt)+
+        '</span><button class="star" aria-label="報告に使う"><i>✓</i></button></div>';
+    });
+    html+="</div>";
+  });
+  $("photos").innerHTML=html+'<div style="height:40px"></div>';
+}
+let viewerUrl=null;
+async function openViewer(id){
+  const p=findPhoto(id);if(!p)return;
+  S.viewer=id;$("vImg").removeAttribute("src");$("viewer").hidden=false;renderViewer();
+  if(p.queued){
+    const rec=await qGet(id);
+    if(rec&&S.viewer===id){viewerUrl=URL.createObjectURL(new Blob([rec.buf],{type:"image/jpeg"}));$("vImg").src=viewerUrl}
+  }else $("vImg").src=p.url;
+}
+function renderViewer(){
+  const p=findPhoto(S.viewer);if(!p){closeViewer();return}
+  const d=new Date(p.takenAt);
+  $("vInfo").textContent=p.horseName+"　"+p.orient+(p.queued?"（送信待ち）":"");
+  const ds=d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());if(document.activeElement!==$("vDate"))$("vDate").value=ds;$("vDate").max=todayStr();
+  $("vSel").classList.toggle("on",!!p.selected);$("vSel").textContent=p.selected?"✓ 報告に使う":"報告に使う";
+}
+function closeViewer(){
+  S.viewer=null;$("viewer").hidden=true;$("vImg").removeAttribute("src");
+  if(viewerUrl){URL.revokeObjectURL(viewerUrl);viewerUrl=null}
+}
+function openHorse(id){
+  S.view="horse";S.horseId=String(id);listenHorse(id);
+  try{history.pushState({h:String(id)},"")}catch(e){}
+  render();window.scrollTo(0,0);
+}
+function goHome(){S.view="home";S.horseId=null;listenHorse(null);render()}
+
+/* ---------- 操作 ---------- */
+$("list").addEventListener("click",e=>{const b=e.target.closest(".horse");if(b)openHorse(b.dataset.id)});
+$("seg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.filter=b.dataset.f;lsSet(LS_FILTER,S.filter);renderHome()});
+$("q").addEventListener("input",e=>{S.q=e.target.value;renderHome()});
+$("backBtn").addEventListener("click",()=>{if(history.state&&history.state.h)history.back();else goHome()});
+window.addEventListener("popstate",()=>{if(S.viewer){closeViewer()}if(S.view==="horse")goHome()});
+$("shootBtn").addEventListener("click",()=>$("cam").click());
+$("pickBtn").addEventListener("click",()=>$("lib").click());
+$("cam").addEventListener("change",e=>{const f=e.target.files;addFiles(f,true).finally(()=>{e.target.value=""})});
+$("lib").addEventListener("change",e=>{const f=e.target.files;addFiles(f,false).finally(()=>{e.target.value=""})});
+$("photos").addEventListener("click",e=>{
+  const ph=e.target.closest(".ph");if(!ph)return;
+  if(e.target.closest(".star"))toggleSel(ph.dataset.id);else openViewer(ph.dataset.id);
+});
+$("vClose").addEventListener("click",closeViewer);
+$("vDate").addEventListener("change",e=>{if(S.viewer&&e.target.value)changeDate(S.viewer,e.target.value)});
+$("vSel").addEventListener("click",()=>{if(S.viewer)toggleSel(S.viewer)});
+$("vDel").addEventListener("click",()=>{if(S.viewer)delPhoto(S.viewer)});
+$("syncChip").addEventListener("click",()=>{S.panel=!S.panel;renderSync()});
+document.addEventListener("click",e=>{
+  const id=e.target.id;
+  if(id==="retryBtn"||id==="pumpBtn"){pump();if(!navigator.onLine)toast("オフラインです")}
+  else if(id==="reloadBtn")location.reload();
+  else if(id==="logoutBtn"){
+    if(S.queue.length&&!confirm("送信待ちの写真が "+S.queue.length+" 枚あります。\nログアウトしても端末には残りますが、送信は次のログインまで止まります。ログアウトしますか？"))return;
+    if(!S.queue.length&&!confirm("ログアウトしますか？"))return;
+    fbAuth.signOut();
+  }
+});
+window.addEventListener("online",()=>{S.online=true;renderSync();pump()});
+window.addEventListener("offline",()=>{S.online=false;renderSync()});
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState!=="visible"||!S.user)return;
+  if(S.monthYm!==ymOf(Date.now()))listenMonth();   // 月が変わったら切り替え
+  pump();
+});
+setInterval(()=>{if(S.queue.length)pump()},60000);
+
+$("loginForm").addEventListener("submit",e=>{
+  e.preventDefault();const em=$("em").value.trim(),pw=$("pw").value;const er=$("loginErr");er.hidden=true;
+  if(!em||!pw){er.textContent="メールアドレスとパスワードを入力してください。";er.hidden=false;return}
+  $("loginBtn").disabled=true;$("loginBtn").textContent="ログイン中…";
+  fbAuth.signInWithEmailAndPassword(em,pw).catch(x=>{
+    const c=x&&x.code;
+    er.textContent=c==="auth/network-request-failed"?"ネットワークに接続できません。":c==="auth/too-many-requests"?"試行回数が多すぎます。しばらく待ってから再度お試しください。":"メールアドレスまたはパスワードが違います。";
+    er.hidden=false;
+  }).finally(()=>{$("loginBtn").disabled=false;$("loginBtn").textContent="ログイン"});
+});
+$("resetBtn").addEventListener("click",()=>{
+  const em=$("em").value.trim(),er=$("loginErr");er.hidden=false;
+  if(!em){er.textContent="先にメールアドレスを入力してください。";return}
+  fbAuth.sendPasswordResetEmail(em).then(()=>{er.textContent="パスワード再設定のメールを送りました。"}).catch(()=>{er.textContent="メールを送れませんでした。"});
+});
+
+/* ---------- 起動 ---------- */
+if(!fbAuth)render();
+else fbAuth.onAuthStateChanged(async u=>{
+  [unsubHorses,unsubMonth,unsubHorse].forEach(f=>{if(f)try{f()}catch(e){}});unsubHorses=unsubMonth=unsubHorse=null;
+  S.user=u||null;S.view="home";S.horseId=null;S.panel=false;S.dataErr=null;S.upErr=null;
+  if(u){await loadQueue();listenHorses();listenMonth();render();pump()}
+  else render();
+});
+</script>
+</body>
+</html>

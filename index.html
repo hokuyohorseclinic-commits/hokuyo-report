@@ -175,7 +175,7 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
    ・写真本体は Firebase Storage（farm_photos/馬ID/…）、写真の情報は Firestore（farm_photos）
    ・電波が悪いときは端末内にためておき、つながったら自動で送る
    ===================================================================== */
-const APP_VER="1.3", APP_BUILD="2026-10-04";
+const APP_VER="1.4", APP_BUILD="2026-10-04";
 const FB_CONFIG={apiKey:"AIzaSyCpBn2haBU1zEIepTpCwF8KeL5v_2_Lnzc",authDomain:"hokuyo-emr.firebaseapp.com",projectId:"hokuyo-emr",storageBucket:"hokuyo-emr.firebasestorage.app",messagingSenderId:"687686923750",appId:"1:687686923750:web:34853b887e5873f7fe9227"};
 const COL_HORSES="farm_data", DOC_HORSES="horses";   // 牧場管理アプリのデータ（読み取り専用）
 const COL_PHOTOS="farm_photos";                      // このアプリの写真情報
@@ -313,8 +313,21 @@ function ownerRank(h){return h.isShared?1:h.selfOwned?2:0}
 function catClass(c){return c==="当歳"?"b-f":c==="一才"?"b-y":c==="繁殖"?"b-b":"b-e"}
 const CAT_ORD={"当歳":0,"一才":1,"育成":2,"繁殖":3};
 function horseById(id){return S.horses.find(h=>String(h.id)===String(id))}
+/* 生まれ年から区分を自動判定（年が変わると 当歳→一才→育成 と繰り上がる）。
+   繁殖は年齢で動かさない。退厩した馬は退厩した年の時点の区分で止める。牧場管理のデータは書き換えない */
+function birthYear(h){
+  let m=String(h.birthDate||"").match(/^(\d{4})/);if(m)return +m[1];
+  m=String(h.name||"").match(/(20\d{2})/);return m?+m[1]:null;
+}
+function autoCat(h){
+  if(h.cat==="繁殖")return h.cat;
+  const by=birthYear(h);if(!by)return h.cat||"";
+  const base=(h.exit&&String(h.exit)<todayStr()&&/^\d{4}/.test(h.exit))?+String(h.exit).slice(0,4):new Date().getFullYear();
+  const a=base-by;
+  return a<0?(h.cat||""):a===0?"当歳":a===1?"一才":"育成";
+}
 function setHorses(arr,from){
-  S.horses=(Array.isArray(arr)?arr:[]).filter(h=>h&&h.id!=null&&h.name);S.horsesFrom=from;
+  S.horses=(Array.isArray(arr)?arr:[]).filter(h=>h&&h.id!=null&&h.name).map(h=>({...h,catReg:h.cat,cat:autoCat(h)}));S.horsesFrom=from;S.horsesYear=new Date().getFullYear();
 }
 function listenHorses(){
   const cached=lsGet(LS_HORSES);
@@ -584,6 +597,7 @@ window.addEventListener("offline",()=>{S.online=false;renderSync()});
 document.addEventListener("visibilitychange",()=>{
   if(document.visibilityState!=="visible"||!S.user)return;
   if(S.monthYm!==ymOf(Date.now()))listenMonth();   // 月が変わったら切り替え
+  if(S.horsesYear!==new Date().getFullYear()){const c=lsGet(LS_HORSES);if(c){try{setHorses(JSON.parse(c),S.horsesFrom);render()}catch(e){}}}   // 年が変わったら区分を繰り上げ
   pump();
 });
 setInterval(()=>{if(S.queue.length)pump()},60000);

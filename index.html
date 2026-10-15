@@ -254,7 +254,7 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
    ・体重・出来事・コメント・送信済みは Firestore（farm_reports）
    ・電波が悪いときは端末内にためておき、つながったら自動で送る
    ===================================================================== */
-const APP_VER="2.1", APP_BUILD="2026-10-15";
+const APP_VER="2.2", APP_BUILD="2026-10-15";
 const FB_CONFIG={apiKey:"AIzaSyCpBn2haBU1zEIepTpCwF8KeL5v_2_Lnzc",authDomain:"hokuyo-emr.firebaseapp.com",projectId:"hokuyo-emr",storageBucket:"hokuyo-emr.firebasestorage.app",messagingSenderId:"687686923750",appId:"1:687686923750:web:34853b887e5873f7fe9227"};
 const COL_HORSES="farm_data", DOC_HORSES="horses";   // 牧場管理アプリのデータ（読み取り専用）
 const COL_PHOTOS="farm_photos";                      // 写真の情報＋サムネイル
@@ -341,14 +341,20 @@ const qGet=id=>qTx("readonly",st=>st.get(id));
 const qDel=id=>qTx("readwrite",st=>st.delete(id));
 const qAll=()=>qTx("readonly",st=>st.getAll());
 function metaOf(rec){
-  if(!thumbUrls.has(rec.id))thumbUrls.set(rec.id,URL.createObjectURL(b64ToBlob(rec.thumbB64)));
+  if(!thumbUrls.has(rec.id)&&rec.thumbB64)thumbUrls.set(rec.id,URL.createObjectURL(b64ToBlob(rec.thumbB64)));
   return{id:rec.id,horseId:rec.horseId,horseName:rec.horseName,owner:rec.owner,cat:rec.cat,takenAt:rec.takenAt,ym:rec.ym,w:rec.w,h:rec.h,orient:rec.orient,selected:!!rec.selected,thumbUrl:thumbUrls.get(rec.id),queued:true};
 }
 /* 写真の表示元（送信待ちは端末内、送信済みは Firestore のサムネイル） */
 function thumbSrc(p){return p.queued?p.thumbUrl:(p.thumbB64?b64Url(p.thumbB64):(p.thumbUrl||""))}
 function dropThumb(id){const u=thumbUrls.get(id);if(u){URL.revokeObjectURL(u);thumbUrls.delete(id)}}
 async function loadQueue(){
-  try{const all=await qAll();S.queue=(all||[]).map(metaOf)}catch(e){console.warn("queue",e);S.queue=[]}
+  try{
+    const all=await qAll();const out=[];
+    for(const rec of (all||[])){
+      try{out.push(metaOf(await migrateRec(rec)))}catch(e){console.warn("queue",e)}
+    }
+    S.queue=out;
+  }catch(e){console.warn("queue",e);S.queue=[]}
 }
 
 /* ---------- 画像の縮小 ---------- */
@@ -384,6 +390,40 @@ async function shrink(file){
     const thumbB64=await blobToB64(th.blob);
     return{b64,thumbB64,w:big.w,h:big.h};
   }finally{URL.revokeObjectURL(url)}
+}
+/* ---------- 前の版で端末に残った写真を新しい形式に直す ---------- */
+function bufToB64(buf){
+  const u=new Uint8Array(buf);let s="";
+  for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));
+  return btoa(s);
+}
+async function fitB64(b64){
+  if(!b64||b64.length<=MAX_B64)return b64;
+  const{im,url}=await loadImage(b64ToBlob(b64));
+  try{
+    let edge=LONG_EDGE,q=JPEG_Q,guard=0;
+    let out=await blobToB64((await drawTo(im,edge,q)).blob);
+    while(out.length>MAX_B64&&guard++<8&&(q>0.5||edge>900)){
+      if(q>0.5)q=Math.max(0.5,q-0.12);else edge=Math.round(edge*0.85);
+      out=await blobToB64((await drawTo(im,edge,q)).blob);
+    }
+    if(out.length>MAX_B64)throw new Error("この写真は大きすぎて保存できませんでした。");
+    return out;
+  }finally{URL.revokeObjectURL(url)}
+}
+async function thumbFromB64(b64){
+  const{im,url}=await loadImage(b64ToBlob(b64));
+  try{return await blobToB64((await drawTo(im,THUMB_EDGE,THUMB_Q)).blob)}
+  finally{URL.revokeObjectURL(url)}
+}
+async function migrateRec(rec){
+  if(!rec)return rec;
+  let ch=false;
+  if(!rec.b64&&rec.buf){rec.b64=await fitB64(bufToB64(rec.buf));delete rec.buf;ch=true}
+  if(!rec.thumbB64&&rec.thumb){rec.thumbB64=bufToB64(rec.thumb);delete rec.thumb;ch=true}
+  if(!rec.thumbB64&&rec.b64){rec.thumbB64=await thumbFromB64(rec.b64);ch=true}
+  if(ch)try{await qPut(rec)}catch(e){console.warn("migrate",e)}
+  return rec;
 }
 async function exifDate(file){
   try{
@@ -550,8 +590,9 @@ async function pump(){
   try{
     const ids=S.queue.slice().sort((a,b)=>a.takenAt-b.takenAt).map(x=>x.id);
     for(const id of ids){
-      const rec=await qGet(id);
+      const rec=await migrateRec(await qGet(id));
       if(!rec){S.queue=S.queue.filter(x=>x.id!==id);continue}
+      if(!rec.b64||!rec.thumbB64){S.upErr="この写真は前の版の形式で、画像を読み出せませんでした。お手数ですが撮り直してください。";continue}
       const cur=(await qGet(id))||rec;
       const b=fbDb.batch();
       b.set(fbDb.collection(COL_PHOTOS).doc(rec.id),{
@@ -913,7 +954,7 @@ let viewerUrl=null;
 /* 写真の本体（base64）を取り出す。送信待ちは端末内、送信済みは Firestore */
 async function fullB64(p){
   if(!p)return "";
-  if(p.queued){const rec=await qGet(p.id);return rec?rec.b64:""}
+  if(p.queued){const rec=await migrateRec(await qGet(p.id));return (rec&&rec.b64)||""}
   try{const d=await fbDb.collection(COL_PHOTO_DATA).doc(p.id).get();return (d.exists&&d.data().b64)||""}
   catch(e){console.warn(e);return ""}
 }

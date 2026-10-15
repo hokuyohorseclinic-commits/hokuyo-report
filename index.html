@@ -13,7 +13,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <style>
 :root{--navy:#0f2f5e;--navy2:#1b4585;--orange:#f97316;--bg:#f3f4f6;--line:#e5e7eb;--text:#111827;--mute:#6b7280;--ok:#065f46;--warn:#92400e;--err:#b91c1c}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -255,13 +254,14 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
    ・体重・出来事・コメント・送信済みは Firestore（farm_reports）
    ・電波が悪いときは端末内にためておき、つながったら自動で送る
    ===================================================================== */
-const APP_VER="2.0", APP_BUILD="2026-10-15";
+const APP_VER="2.1", APP_BUILD="2026-10-15";
 const FB_CONFIG={apiKey:"AIzaSyCpBn2haBU1zEIepTpCwF8KeL5v_2_Lnzc",authDomain:"hokuyo-emr.firebaseapp.com",projectId:"hokuyo-emr",storageBucket:"hokuyo-emr.firebasestorage.app",messagingSenderId:"687686923750",appId:"1:687686923750:web:34853b887e5873f7fe9227"};
 const COL_HORSES="farm_data", DOC_HORSES="horses";   // 牧場管理アプリのデータ（読み取り専用）
-const COL_PHOTOS="farm_photos";                      // 写真の情報
+const COL_PHOTOS="farm_photos";                      // 写真の情報＋サムネイル
+const COL_PHOTO_DATA="farm_photo_data";              // 写真の本体（1枚1件）
 const COL_REPORTS="farm_reports";                    // 体重・出来事・コメント・送信済み
-const ST_DIR="farm_photos";
-const LONG_EDGE=1600, JPEG_Q=0.85, THUMB_EDGE=400, THUMB_Q=0.7;
+const LONG_EDGE=1400, JPEG_Q=0.8, THUMB_EDGE=400, THUMB_Q=0.7;
+const MAX_B64=700000;   // 1件あたりの上限（Firestore の 1MB 制限に収める）
 const LS_HORSES="hr_horses_cache", LS_FILTER="hr_filter", LS_MODE="hr_mode";
 const FARM_NAME="有限会社 北洋牧場";
 const EVENTS=["離乳","削蹄","ワクチン","駆虫","移動","放牧開始","夜間放牧","馴致開始","装蹄","獣医診察"];
@@ -290,7 +290,7 @@ const S={user:null,horses:[],horsesFrom:"",monthPhotos:[],horsePhotos:[],queue:[
   ym:ymOf(Date.now()),ymAuto:true,
   repMonth:{},repHorse:[],sent:[],composeOwner:null,
   uploading:false,upErr:null,dataErr:null,viewer:null,panel:false,online:navigator.onLine};
-let fbAuth=null,fbDb=null,fbSt=null,FB_ERR=null;
+let fbAuth=null,fbDb=null,FB_ERR=null;
 let unsubHorses=null,unsubMonth=null,unsubHorse=null,unsubRep=null,unsubSent=null,unsubRepHorse=null;
 const thumbUrls=new Map();
 
@@ -298,20 +298,25 @@ const thumbUrls=new Map();
 try{
   if(typeof firebase==="undefined")throw new Error("Firebase を読み込めませんでした");
   if(!firebase.apps.length)firebase.initializeApp(FB_CONFIG);
-  fbAuth=firebase.auth();fbDb=firebase.firestore();fbSt=firebase.storage();
-  try{fbSt.setMaxUploadRetryTime(20000);fbSt.setMaxOperationRetryTime(20000)}catch(e){}
+  fbAuth=firebase.auth();fbDb=firebase.firestore();
 }catch(e){FB_ERR=e.message||String(e)}
 
 function errMsg(e){
   const c=(e&&e.code)||"";const m=(e&&e.message)||String(e);
-  if(c==="storage/unauthorized")return "写真の保存先（Firebase Storage）のルールで拒否されました。ログイン済みユーザーに farm_photos の読み書きを許可する設定が必要です。";
-  if(c==="storage/bucket-not-found"||c==="storage/project-not-found"||c==="storage/object-not-found"||/404|not\s*found|does not exist/i.test(m))return "写真の保存先（Firebase Storage）がまだ使える状態になっていません。Firebase コンソールで Storage を有効にしてください。";
-  if(c==="storage/retry-limit-exceeded"||c==="storage/canceled"||c==="unavailable"||/network/i.test(m))return "電波が弱く、送信できませんでした。つながったら自動で送り直します。";
-  if(c==="storage/quota-exceeded")return "保存容量の上限に達しました。";
-  if(c==="permission-denied")return "Firestore のルールで拒否されました。farm_photos と farm_reports の読み書き許可が必要です。";
-  if(c==="storage/unknown")return "写真の保存先（Firebase Storage）に保存できませんでした。Storage が有効になっているか確認してください。";
+  if(c==="permission-denied")return "クラウドのルールで拒否されました。farm_photos・farm_photo_data・farm_reports の読み書き許可が必要です。";
+  if(c==="unavailable"||/network|offline|failed to fetch/i.test(m))return "ネットワークにつながらず、送信できませんでした。つながったら自動で送り直します。";
+  if(c==="resource-exhausted")return "保存容量の上限に達しました。";
+  if(c==="invalid-argument"&&/longer than|bytes/i.test(m))return "写真のサイズが大きすぎて保存できませんでした。";
   return m;
 }
+/* 画像とテキストの相互変換（写真は Firestore に文字列として保存する） */
+function blobToB64(blob){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(String(fr.result).split(",")[1]||"");fr.onerror=()=>rej(fr.error||new Error("画像を変換できませんでした"));fr.readAsDataURL(blob)})}
+function b64ToBlob(b64){
+  const bin=atob(String(b64||""));const u=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  return new Blob([u],{type:"image/jpeg"});
+}
+const b64Url=b=>b?"data:image/jpeg;base64,"+b:"";
 
 /* ---------- 端末内の送信待ち置き場（IndexedDB） ---------- */
 let idbP=null;
@@ -336,9 +341,11 @@ const qGet=id=>qTx("readonly",st=>st.get(id));
 const qDel=id=>qTx("readwrite",st=>st.delete(id));
 const qAll=()=>qTx("readonly",st=>st.getAll());
 function metaOf(rec){
-  if(!thumbUrls.has(rec.id))thumbUrls.set(rec.id,URL.createObjectURL(new Blob([rec.thumb],{type:"image/jpeg"})));
+  if(!thumbUrls.has(rec.id))thumbUrls.set(rec.id,URL.createObjectURL(b64ToBlob(rec.thumbB64)));
   return{id:rec.id,horseId:rec.horseId,horseName:rec.horseName,owner:rec.owner,cat:rec.cat,takenAt:rec.takenAt,ym:rec.ym,w:rec.w,h:rec.h,orient:rec.orient,selected:!!rec.selected,thumbUrl:thumbUrls.get(rec.id),queued:true};
 }
+/* 写真の表示元（送信待ちは端末内、送信済みは Firestore のサムネイル） */
+function thumbSrc(p){return p.queued?p.thumbUrl:(p.thumbB64?b64Url(p.thumbB64):(p.thumbUrl||""))}
 function dropThumb(id){const u=thumbUrls.get(id);if(u){URL.revokeObjectURL(u);thumbUrls.delete(id)}}
 async function loadQueue(){
   try{const all=await qAll();S.queue=(all||[]).map(metaOf)}catch(e){console.warn("queue",e);S.queue=[]}
@@ -363,9 +370,19 @@ function drawTo(im,edge,q){
 async function shrink(file){
   const{im,url}=await loadImage(file);
   try{
-    const big=await drawTo(im,LONG_EDGE,JPEG_Q);
+    let edge=LONG_EDGE,q=JPEG_Q;
+    let big=await drawTo(im,edge,q);
+    let b64=await blobToB64(big.blob);
+    /* 1件の上限に収まるまで少しずつ小さくする */
+    let guard=0;
+    while(b64.length>MAX_B64&&guard++<8&&(q>0.5||edge>900)){
+      if(q>0.5)q=Math.max(0.5,q-0.12);else edge=Math.round(edge*0.85);
+      big=await drawTo(im,edge,q);b64=await blobToB64(big.blob);
+    }
+    if(b64.length>MAX_B64)throw new Error("この写真は大きすぎて保存できませんでした。");
     const th=await drawTo(im,THUMB_EDGE,THUMB_Q);
-    return{buf:await big.blob.arrayBuffer(),thumb:await th.blob.arrayBuffer(),w:big.w,h:big.h};
+    const thumbB64=await blobToB64(th.blob);
+    return{b64,thumbB64,w:big.w,h:big.h};
   }finally{URL.revokeObjectURL(url)}
 }
 async function exifDate(file){
@@ -518,7 +535,7 @@ async function addFiles(files,fromCamera){
         else{noDate++;if(f.lastModified&&Date.now()-f.lastModified>3600000)takenAt=f.lastModified}
       }
       const id=takenAt+"_"+Math.random().toString(36).slice(2,8);
-      const rec={id,horseId:String(h.id),horseName:h.name,owner:ownerLabel(h),cat:h.cat||"",takenAt,ym:ymOf(takenAt),w:r.w,h:r.h,orient:orientOf(r.w,r.h),selected:false,buf:r.buf,thumb:r.thumb};
+      const rec={id,horseId:String(h.id),horseName:h.name,owner:ownerLabel(h),cat:h.cat||"",takenAt,ym:ymOf(takenAt),w:r.w,h:r.h,orient:orientOf(r.w,r.h),selected:false,b64:r.b64,thumbB64:r.thumbB64};
       await qPut(rec);
       S.queue.push(metaOf(rec));ok++;last=rec.orient;
       renderHorse();renderSync();
@@ -528,25 +545,22 @@ async function addFiles(files,fromCamera){
   pump();
 }
 async function pump(){
-  if(S.uploading||!S.user||!fbSt||!navigator.onLine)return;
+  if(S.uploading||!S.user||!fbDb||!navigator.onLine)return;
   S.uploading=true;S.upErr=null;renderSync();
   try{
     const ids=S.queue.slice().sort((a,b)=>a.takenAt-b.takenAt).map(x=>x.id);
     for(const id of ids){
       const rec=await qGet(id);
       if(!rec){S.queue=S.queue.filter(x=>x.id!==id);continue}
-      const base=ST_DIR+"/"+rec.horseId+"/"+rec.id;
-      const meta={contentType:"image/jpeg",cacheControl:"private, max-age=31536000"};
-      const r1=fbSt.ref(base+".jpg");await r1.put(new Blob([rec.buf],{type:"image/jpeg"}),meta);
-      const url=await r1.getDownloadURL();
-      const r2=fbSt.ref(base+"_t.jpg");await r2.put(new Blob([rec.thumb],{type:"image/jpeg"}),meta);
-      const thumbUrl=await r2.getDownloadURL();
       const cur=(await qGet(id))||rec;
-      await fbDb.collection(COL_PHOTOS).doc(rec.id).set({
+      const b=fbDb.batch();
+      b.set(fbDb.collection(COL_PHOTOS).doc(rec.id),{
         horseId:rec.horseId,horseName:rec.horseName,owner:rec.owner,cat:rec.cat,takenAt:rec.takenAt,ym:rec.ym,
-        w:rec.w,h:rec.h,orient:rec.orient,selected:!!cur.selected,url,thumbUrl,path:base+".jpg",thumbPath:base+"_t.jpg",
+        w:rec.w,h:rec.h,orient:rec.orient,selected:!!cur.selected,thumbB64:rec.thumbB64,
         by:(S.user&&S.user.email)||"",at:Date.now()
       });
+      b.set(fbDb.collection(COL_PHOTO_DATA).doc(rec.id),{horseId:rec.horseId,ym:rec.ym,b64:rec.b64,at:Date.now()});
+      await b.commit();
       await qDel(id);dropThumb(id);
       S.queue=S.queue.filter(x=>x.id!==id);
       render();
@@ -581,8 +595,10 @@ async function delPhoto(id){
   try{
     if(p.queued){await qDel(id);dropThumb(id);S.queue=S.queue.filter(x=>x.id!==id)}
     else{
-      await fbDb.collection(COL_PHOTOS).doc(id).delete();
-      [p.path,p.thumbPath].forEach(x=>{if(x)fbSt.ref(x).delete().catch(e=>console.warn("storage delete",e))});
+      const b=fbDb.batch();
+      b.delete(fbDb.collection(COL_PHOTOS).doc(id));
+      b.delete(fbDb.collection(COL_PHOTO_DATA).doc(id));
+      await b.commit();
     }
     closeViewer();render();toast("削除しました");
   }catch(e){console.error(e);toast(errMsg(e))}
@@ -645,9 +661,9 @@ async function photoFiles(k){
     for(let i=0;i<ps.length;i++){
       const p=ps[i];const nm=h.name+"_"+(i+1)+".jpg";
       try{
-        if(p.queued){const rec=await qGet(p.id);if(rec)files.push(new File([rec.buf],nm,{type:"image/jpeg"}));}
-        else{const r=await fetch(p.url);const b=await r.blob();files.push(new File([b],nm,{type:"image/jpeg"}));}
-      }catch(e){console.warn("photo fetch",e);failed++}
+        const b=await fullB64(p);
+        if(b)files.push(new File([b64ToBlob(b)],nm,{type:"image/jpeg"}));else failed++;
+      }catch(e){console.warn("photo",e);failed++}
     }
   }
   return{files,failed};
@@ -679,8 +695,12 @@ async function sharePhotosOnly(k){
   if(navigator.canShare&&navigator.canShare({files}))navigator.share({files}).catch(shareErr);
   else alert("この端末では写真の共有に対応していません。印刷・PDF をお使いください。");
 }
-function printReport(k){
+async function printReport(k){
   const hs=ownerHorses(k).filter(hasContent);
+  toast("写真を読み込んでいます…",0);
+  const srcMap={};
+  for(const h of hs){for(const p of selectedOf(h.id)){const b=await fullB64(p);srcMap[p.id]=b?b64Url(b):(p.url||thumbSrc(p))}}
+  $("toast").hidden=true;
   let body='<h1>'+esc(ymLabel(S.ym))+"　近況報告</h1>";
   body+='<p class="to">'+esc(isSelfOwner(k)?k:k+" 様")+"</p>";
   body+='<p class="ld">'+esc(ymLabel(S.ym))+"の預託馬の近況をご報告いたします。</p>";
@@ -694,8 +714,8 @@ function printReport(k){
     if(h.exit&&String(h.exit).slice(0,7)===S.ym)meta.push(Number(String(h.exit).slice(5,7))+"月"+Number(String(h.exit).slice(8,10))+"日 退厩");
     if(meta.length)body+='<p class="mt">'+meta.join("　／　")+"</p>";
     if(r.comment)body+="<p>"+esc(r.comment).replace(/\n/g,"<br>")+"</p>";
-    const ps=selectedOf(h.id).filter(p=>p.url||p.thumbUrl);
-    if(ps.length){body+='<div class="pg">';ps.forEach(p=>{body+='<img src="'+esc(p.url||p.thumbUrl)+'">'});body+="</div>"}
+    const ps=selectedOf(h.id).filter(p=>srcMap[p.id]);
+    if(ps.length){body+='<div class="pg">';ps.forEach(p=>{body+='<img src="'+srcMap[p.id]+'">'});body+="</div>"}
     body+="</section>";
   });
   body+='<p class="ft">引き続きよろしくお願いいたします。<br>'+esc(FARM_NAME)+"</p>";
@@ -858,7 +878,7 @@ function renderHorse(){
     if(list.length){
       html+='<div class="grid">';
       list.forEach(p=>{
-        html+='<div class="ph'+(p.selected?" on":"")+'" data-id="'+esc(p.id)+'"><img loading="lazy" src="'+esc(p.thumbUrl)+'" alt="">'+
+        html+='<div class="ph'+(p.selected?" on":"")+'" data-id="'+esc(p.id)+'"><img loading="lazy" src="'+esc(thumbSrc(p))+'" alt="">'+
           (p.queued?'<span class="w">送信待ち</span>':"")+'<span class="o">'+esc(p.orient)+'</span><span class="d">'+dayLabel(p.takenAt)+
           '</span><button class="star" aria-label="報告に使う"><i>✓</i></button></div>';
       });
@@ -877,7 +897,7 @@ function renderCompose(){
   let html='<div class="txt">'+esc(text)+"</div>";
   const ph=[];hs.forEach(h=>selectedOf(h.id).forEach(p=>ph.push(p)));
   html+="<h3>送る写真（"+ph.length+" 枚）</h3>";
-  if(ph.length){html+='<div class="grid" style="padding:0">';ph.forEach(p=>{html+='<div class="ph"><img loading="lazy" src="'+esc(p.thumbUrl)+'" alt=""><span class="o">'+esc(p.horseName||"")+"</span></div>"});html+="</div>"}
+  if(ph.length){html+='<div class="grid" style="padding:0">';ph.forEach(p=>{html+='<div class="ph"><img loading="lazy" src="'+esc(thumbSrc(p))+'" alt=""><span class="o">'+esc(p.horseName||"")+"</span></div>"});html+="</div>"}
   else html+='<div class="empty" style="padding:18px">選ばれた写真がありません。<br>写真の画面で ○ をタップして選んでください。</div>';
   html+='<div class="acts">'+
     '<button class="pri wide" id="aShare">文章と写真を送る</button>'+
@@ -890,13 +910,21 @@ function renderCompose(){
   $("cmpBody").innerHTML=html;
 }
 let viewerUrl=null;
+/* 写真の本体（base64）を取り出す。送信待ちは端末内、送信済みは Firestore */
+async function fullB64(p){
+  if(!p)return "";
+  if(p.queued){const rec=await qGet(p.id);return rec?rec.b64:""}
+  try{const d=await fbDb.collection(COL_PHOTO_DATA).doc(p.id).get();return (d.exists&&d.data().b64)||""}
+  catch(e){console.warn(e);return ""}
+}
 async function openViewer(id){
   const p=findPhoto(id);if(!p)return;
   S.viewer=id;$("vImg").removeAttribute("src");$("viewer").hidden=false;renderViewer();
-  if(p.queued){
-    const rec=await qGet(id);
-    if(rec&&S.viewer===id){viewerUrl=URL.createObjectURL(new Blob([rec.buf],{type:"image/jpeg"}));$("vImg").src=viewerUrl}
-  }else $("vImg").src=p.url;
+  const b=await fullB64(p);
+  if(S.viewer!==id)return;
+  if(b){viewerUrl=URL.createObjectURL(b64ToBlob(b));$("vImg").src=viewerUrl}
+  else if(p.url)$("vImg").src=p.url;
+  else toast("写真の本体を読み込めませんでした");
 }
 function renderViewer(){
   const p=findPhoto(S.viewer);if(!p){closeViewer();return}

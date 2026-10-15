@@ -79,6 +79,22 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
 .ph .star i{width:28px;height:28px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.35);color:transparent;font-style:normal;font-size:16px;line-height:24px;text-align:center;font-weight:800}
 .ph.on .star i{background:var(--orange);color:#fff}
 .hint{font-size:12px;color:var(--mute);padding:10px 14px 0;line-height:1.7}
+.seg.htab{margin:12px 14px 0}
+.gsum{padding:14px 14px 0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.gsum b{font-size:26px;color:var(--navy)}
+.gsum span{font-size:12px;color:var(--mute)}
+.gsum .gain{font-weight:700;color:#8a6d1f}
+.gch{padding:6px 10px 0}
+.grow{border-top:1px solid var(--line);padding:12px 14px}
+.gm{display:flex;align-items:baseline;gap:8px;font-size:13px;font-weight:700;color:var(--navy)}
+.gm b{font-size:17px}
+.gm .diff{font-size:12px;font-weight:700;color:var(--mute)}
+.gm .diff.up{color:var(--ok)}.gm .diff.down{color:var(--err)}
+.gev{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
+.gev i{font-style:normal;font-size:11px;font-weight:700;background:#e8edf5;color:var(--navy);border-radius:999px;padding:3px 9px}
+.gc{margin-top:6px;font-size:13px;line-height:1.7;color:var(--text)}
+.gp{margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.gp img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:4px;background:#d1d5db;display:block}
 #viewer{position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column}
 #viewer .top{display:flex;justify-content:space-between;align-items:center;color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;font-size:13px;gap:10px}
 #viewer .img{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
@@ -211,8 +227,10 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
       </div>
       <div class="skipbar" id="skipBar"></div>
       <div class="form" id="form"></div>
-      <div class="hint">報告に使う写真は右上の ○ をタップして選びます。</div>
+      <div class="seg htab" id="hTab"><button data-t="photo">今月の作業</button><button data-t="growth">成長記録</button></div>
+      <div class="hint" id="selHint">報告に使う写真は右上の ○ をタップして選びます。</div>
       <div id="photos"></div>
+      <div id="growth" hidden></div>
     </section>
 
     <section id="compose" hidden><div class="cmp" id="cmpBody"></div></section>
@@ -254,7 +272,7 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
    ・体重・出来事・コメント・送信済みは Firestore（farm_reports）
    ・電波が悪いときは端末内にためておき、つながったら自動で送る
    ===================================================================== */
-const APP_VER="2.2", APP_BUILD="2026-10-15";
+const APP_VER="2.3", APP_BUILD="2026-10-15";
 const FB_CONFIG={apiKey:"AIzaSyCpBn2haBU1zEIepTpCwF8KeL5v_2_Lnzc",authDomain:"hokuyo-emr.firebaseapp.com",projectId:"hokuyo-emr",storageBucket:"hokuyo-emr.firebasestorage.app",messagingSenderId:"687686923750",appId:"1:687686923750:web:34853b887e5873f7fe9227"};
 const COL_HORSES="farm_data", DOC_HORSES="horses";   // 牧場管理アプリのデータ（読み取り専用）
 const COL_PHOTOS="farm_photos";                      // 写真の情報＋サムネイル
@@ -289,7 +307,7 @@ const S={user:null,horses:[],horsesFrom:"",monthPhotos:[],horsePhotos:[],queue:[
   filter:["foal","yearling","mare","all","left"].includes(lsGet(LS_FILTER))?lsGet(LS_FILTER):"foal",q:"",
   ym:ymOf(Date.now()),ymAuto:true,
   repMonth:{},repHorse:[],sent:[],composeOwner:null,
-  uploading:false,upErr:null,dataErr:null,viewer:null,panel:false,online:navigator.onLine};
+  uploading:false,upErr:null,dataErr:null,viewer:null,panel:false,hTab:"photo",online:navigator.onLine};
 let fbAuth=null,fbDb=null,FB_ERR=null;
 let unsubHorses=null,unsubMonth=null,unsubHorse=null,unsubRep=null,unsubSent=null,unsubRepHorse=null;
 const thumbUrls=new Map();
@@ -898,6 +916,10 @@ function renderHorse(){
   $("title").textContent=h?h.name:"（馬が見つかりません）";
   $("subtitle").textContent=h?[catAt(h,S.ym),ownerLabel(h)].filter(Boolean).join("・"):"";
   renderForm();
+  const gw=S.hTab==="growth";
+  Array.from($("hTab").children).forEach(b=>b.classList.toggle("on",(b.dataset.t==="growth")===gw));
+  $("photos").hidden=gw;$("selHint").hidden=gw;$("growth").hidden=!gw;
+  if(gw){renderGrowth();return}
   const ps=horsePhotosAll();
   $("shootBtn").textContent=ps.some(p=>p.ym===S.ym)?"📷 続けて撮る":"📷 撮る";
   const wmap={};S.repHorse.forEach(r=>{if(r.weight)wmap[r.ym]=r.weight});
@@ -927,6 +949,152 @@ function renderHorse(){
     }
   });
   $("photos").innerHTML=html+'<div style="height:40px"></div>';
+}
+/* ---------- 成長記録 ---------- */
+function growthRows(){
+  const ps=horsePhotosAll();
+  const wmap={},cmap={},emap={};
+  S.repHorse.forEach(r=>{
+    if(r.weight)wmap[r.ym]=Number(r.weight);
+    if(r.comment)cmap[r.ym]=r.comment;
+    if((r.events||[]).length)emap[r.ym]=r.events;
+  });
+  const keys=new Set();
+  ps.forEach(p=>keys.add(p.ym));
+  [wmap,cmap,emap].forEach(m=>Object.keys(m).forEach(k=>keys.add(k)));
+  let prev=null;
+  return [...keys].sort().map(ym=>{
+    const w=wmap[ym]!=null&&!isNaN(wmap[ym])?wmap[ym]:null;
+    const d=(w!=null&&prev!=null)?w-prev:null;
+    if(w!=null)prev=w;
+    const pl=ps.filter(p=>p.ym===ym).sort((a,b)=>a.takenAt-b.takenAt);
+    const sel=pl.filter(p=>p.selected);
+    return{ym,w,d,photos:sel.length?sel:pl,comment:cmap[ym]||"",events:emap[ym]||[]};
+  });
+}
+function weightChart(rows){
+  const pts=rows.filter(r=>r.w!=null);
+  if(!pts.length)return "";
+  const W=340,H=160,L=40,R=10,T=14,B=26;
+  const ws=pts.map(p=>p.w);
+  let min=Math.min.apply(null,ws),max=Math.max.apply(null,ws);
+  if(max-min<10){const c=(max+min)/2;min=c-5;max=c+5}
+  const sp=(max-min)*0.12;min-=sp;max+=sp;
+  const x=i=>pts.length<2?L+(W-L-R)/2:L+(W-L-R)*i/(pts.length-1);
+  const y=v=>T+(H-T-B)*(1-(v-min)/(max-min));
+  let s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">';
+  [0,0.5,1].forEach(t=>{
+    const yy=T+(H-T-B)*t;
+    s+='<line x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+(W-R)+'" y2="'+yy.toFixed(1)+'" stroke="#e5e7eb" stroke-width="1"/>'+
+       '<text x="'+(L-6)+'" y="'+(yy+3.5).toFixed(1)+'" text-anchor="end" font-size="9" fill="#9ca3af">'+Math.round(max-(max-min)*t)+"</text>";
+  });
+  if(pts.length>1)s+='<path d="'+pts.map((p,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(p.w).toFixed(1)).join(" ")+'" fill="none" stroke="#0f2f5e" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  const step=Math.max(1,Math.ceil(pts.length/6));
+  pts.forEach((p,i)=>{
+    s+='<circle cx="'+x(i).toFixed(1)+'" cy="'+y(p.w).toFixed(1)+'" r="3.2" fill="#c08a2e"/>';
+    if(i%step===0||i===pts.length-1)
+      s+='<text x="'+x(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="#9ca3af">'+Number(p.ym.slice(5,7))+"月</text>";
+  });
+  return s+"</svg>";
+}
+function renderGrowth(){
+  const h=horseById(S.horseId);if(!h)return;
+  const g=$("growth");
+  const rows=growthRows();
+  if(!rows.length){
+    g.innerHTML='<div class="empty">'+(S.horseLoaded?"まだ記録がありません。<br>写真を撮るか体重を入れると、ここにたまっていきます。":"読み込み中…")+"</div>";
+    return;
+  }
+  const ws=rows.filter(r=>r.w!=null);
+  let head="";
+  if(ws.length){
+    const f=ws[0],l=ws[ws.length-1],gain=l.w-f.w;
+    head='<div class="gsum"><b>'+l.w+"kg</b><span>"+esc(ymLabel(l.ym))+" 時点</span>"+
+      (ws.length>1?'<span class="gain">'+esc(ymLabel(f.ym))+"から "+(gain>=0?"+":"")+gain+"kg</span>":"")+"</div>";
+    head+='<div class="gch">'+weightChart(rows)+"</div>";
+  }
+  let html=head+'<div class="mh">月ごとの記録<span>'+rows.length+" か月</span></div>";
+  rows.slice().reverse().forEach(r=>{
+    html+='<div class="grow"><div class="gm">'+esc(ymLabel(r.ym))+
+      (r.w!=null?"<b>"+r.w+"kg</b>":"")+
+      (r.d!=null?'<span class="diff '+(r.d>0?"up":r.d<0?"down":"")+'">'+(r.d>=0?"+":"")+r.d+"kg</span>":"")+"</div>";
+    if(r.events.length)html+='<div class="gev">'+r.events.map(e=>"<i>"+esc(e)+"</i>").join("")+"</div>";
+    if(r.comment)html+='<div class="gc">'+esc(r.comment).replace(/\n/g,"<br>")+"</div>";
+    if(r.photos.length)html+='<div class="gp">'+r.photos.slice(0,4).map(p=>'<img loading="lazy" data-id="'+esc(p.id)+'" src="'+esc(thumbSrc(p))+'" alt="">').join("")+"</div>";
+    html+="</div>";
+  });
+  g.innerHTML='<div class="shoot" style="border-bottom:none;padding-bottom:0"><button class="btn sub" id="gPrint">📄 成長記録を印刷（PDF）</button><button class="btn sub" id="gShare">写真をまとめて送る</button></div>'+
+    html+'<div style="height:40px"></div>';
+}
+async function growthPhotoSrc(rows,max){
+  const srcMap={};let n=0;
+  for(const r of rows){
+    for(const p of r.photos.slice(0,max)){
+      const b=await fullB64(p);srcMap[p.id]=b?b64Url(b):thumbSrc(p);n++;
+    }
+  }
+  return srcMap;
+}
+async function printGrowth(){
+  const h=horseById(S.horseId);if(!h)return;
+  const rows=growthRows();
+  if(!rows.length){toast("まだ記録がありません");return}
+  toast("写真を読み込んでいます…",0);
+  const srcMap=await growthPhotoSrc(rows,3);
+  $("toast").hidden=true;
+  const ws=rows.filter(r=>r.w!=null);
+  let body='<h1>'+esc(h.name)+"　成長記録</h1>";
+  body+='<p class="sub">'+esc([ownerLabel(h),catAt(h,S.ym)].filter(Boolean).join("・"))+"　／　"+esc(FARM_NAME)+"</p>";
+  if(ws.length){
+    const f=ws[0],l=ws[ws.length-1];
+    body+='<p class="sum">'+esc(ymLabel(l.ym))+"　"+l.w+"kg"+(ws.length>1?"（"+esc(ymLabel(f.ym))+"から "+(l.w-f.w>=0?"+":"")+(l.w-f.w)+"kg）":"")+"</p>";
+    body+='<div class="ch">'+weightChart(rows)+"</div>";
+  }
+  rows.slice().reverse().forEach(r=>{
+    body+='<section><h2>'+esc(ymLabel(r.ym))+"</h2>";
+    const meta=[];
+    if(r.w!=null)meta.push("体重 "+r.w+"kg"+(r.d!=null?"（前月比 "+(r.d>=0?"+":"")+r.d+"kg）":""));
+    if(r.events.length)meta.push(esc(r.events.join("・")));
+    if(meta.length)body+='<p class="mt">'+meta.join("　／　")+"</p>";
+    if(r.comment)body+="<p>"+esc(r.comment).replace(/\n/g,"<br>")+"</p>";
+    const ps=r.photos.slice(0,3).filter(p=>srcMap[p.id]);
+    if(ps.length)body+='<div class="pg">'+ps.map(p=>'<img src="'+srcMap[p.id]+'">').join("")+"</div>";
+    body+="</section>";
+  });
+  const css='@page{size:A4;margin:16mm}*{box-sizing:border-box}body{font-family:"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;color:#111;font-size:12px;line-height:1.8;margin:0}'+
+    'h1{font-size:18px;text-align:center;margin:0 0 4px}.sub{text-align:center;color:#666;margin:0 0 10px}'+
+    '.sum{text-align:center;font-size:15px;font-weight:700;margin:0 0 6px}.ch{width:70%;margin:0 auto 10px}'+
+    'section{page-break-inside:avoid;border-top:1px solid #ddd;padding:9px 0}h2{font-size:13px;margin:0 0 3px}'+
+    '.mt{margin:0 0 4px;color:#333}p{margin:0 0 6px}.pg{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.pg img{width:31%;border-radius:4px}';
+  const w=window.open("","","width=820,height=1000");
+  if(!w){alert("印刷画面を開けませんでした。ブラウザのポップアップ設定を確認してください。");return}
+  w.document.write('<html><head><meta charset="utf-8"><title>'+esc(h.name+"_成長記録")+"</title><style>"+css+"</style></head><body>"+body+"</body></html>");
+  w.document.close();
+  const imgs=Array.from(w.document.images);let left=imgs.length;
+  const go=()=>{try{w.focus();w.print()}catch(e){}};
+  if(!left)setTimeout(go,300);
+  else{const done=()=>{if(--left<=0)setTimeout(go,300)};imgs.forEach(im=>{if(im.complete)done();else{im.onload=done;im.onerror=done}});setTimeout(go,8000)}
+}
+async function shareGrowthPhotos(){
+  const h=horseById(S.horseId);if(!h)return;
+  const rows=growthRows();
+  const ps=[];rows.forEach(r=>r.photos.slice(0,1).forEach(p=>ps.push(p)));
+  if(!ps.length){toast("写真がありません");return}
+  toast("写真を準備しています…",0);
+  const files=[];let failed=0;
+  for(let i=0;i<ps.length;i++){
+    const p=ps[i];
+    try{
+      const b=await fullB64(p);
+      if(b)files.push(new File([b64ToBlob(b)],h.name+"_"+p.ym+".jpg",{type:"image/jpeg"}));else failed++;
+    }catch(e){console.warn("photo",e);failed++}
+  }
+  $("toast").hidden=true;
+  if(!files.length){toast("写真を準備できませんでした");return}
+  if(failed)toast(failed+" 枚は読み込めませんでした");
+  if(navigator.canShare&&navigator.canShare({files})){
+    try{await navigator.share({files,title:h.name+" 成長記録"})}catch(e){}
+  }else toast("この端末では写真の共有に対応していません");
 }
 function renderCompose(){
   const k=S.composeOwner;if(!k){goHome();return}
@@ -979,7 +1147,7 @@ function closeViewer(){
   if(viewerUrl){URL.revokeObjectURL(viewerUrl);viewerUrl=null}
 }
 function openHorse(id){
-  S.view="horse";S.horseId=String(id);listenHorse(id);
+  S.view="horse";S.horseId=String(id);S.hTab="photo";listenHorse(id);
   try{history.pushState({v:"horse"},"")}catch(e){}
   render();window.scrollTo(0,0);
 }
@@ -1043,6 +1211,15 @@ $("cmpBody").addEventListener("click",e=>{
   else if(id==="aPhoto")sharePhotosOnly(k);
   else if(id==="aPrint")printReport(k);
   else if(id==="aSent")toggleSent(k);
+});
+$("hTab").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  S.hTab=b.dataset.t;renderHorse();
+});
+$("growth").addEventListener("click",e=>{
+  if(e.target.id==="gPrint"){printGrowth();return}
+  if(e.target.id==="gShare"){shareGrowthPhotos();return}
+  const im=e.target.closest("img[data-id]");if(im)openViewer(im.dataset.id);
 });
 $("vClose").addEventListener("click",closeViewer);
 $("vDate").addEventListener("change",e=>{if(S.viewer&&e.target.value)changeDate(S.viewer,e.target.value)});

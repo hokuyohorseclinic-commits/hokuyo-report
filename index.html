@@ -19,7 +19,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;font-size:16px;line-height:1.5}
 button{font:inherit;color:inherit;cursor:pointer}
-input{font:inherit}
+input,textarea,select{font:inherit}
 [hidden]{display:none!important}
 .wrap{max-width:760px;margin:0 auto}
 header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px}
@@ -39,8 +39,13 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
 .seg{display:flex;background:var(--bg);border-radius:10px;padding:3px;gap:3px}
 .seg button{flex:1;border:none;background:none;border-radius:8px;padding:9px 4px;font-size:14px;font-weight:600;color:var(--mute);white-space:nowrap}
 .seg button.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg.modes{margin-bottom:8px;background:#e8edf5}
+.seg.modes button.on{background:var(--navy);color:#fff}
 .search{width:100%;margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
-.month{font-size:12px;color:var(--mute);margin-top:8px;display:flex;justify-content:space-between;gap:8px}
+.month{font-size:12px;color:var(--mute);margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.month .nav{display:flex;align-items:center;gap:6px}
+.month .nav button{border:1px solid var(--line);background:#fff;border-radius:7px;width:30px;height:28px;font-size:16px;line-height:1;color:var(--navy)}
+.month .nav b{font-size:13px;color:var(--text)}
 .grp{padding:14px 14px 4px;font-size:13px;font-weight:700;color:var(--navy);display:flex;justify-content:space-between}
 .grp span{font-weight:500;color:var(--mute)}
 .list{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -95,6 +100,54 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
 #login .lnk{margin-top:12px;background:none;border:none;color:var(--navy2);font-size:13px;padding:0}
 .panel{background:#fff;border-bottom:1px solid var(--line);padding:12px 14px;font-size:13px;line-height:1.9;color:#374151}
 .panel button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font-size:13px;margin:6px 8px 0 0}
+/* ---- 報告の入力（馬の画面） ---- */
+.form{background:#fff;border-bottom:1px solid var(--line);padding:12px 14px}
+.form .fr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.form label.lb{font-size:13px;font-weight:700;color:var(--navy);flex:none;width:52px}
+.form input.wt{width:110px;border:1px solid var(--line);border-radius:9px;padding:9px 10px;text-align:right}
+.form .diff{font-size:13px;font-weight:700}
+.form .diff.up{color:var(--ok)}.form .diff.down{color:var(--err)}
+.form .prev{font-size:12px;color:var(--mute)}
+.evs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.ev{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:13px;color:#374151}
+.ev.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:700}
+.cm{width:100%;min-height:76px;border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical}
+.phr{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.phr button{border:1px dashed #c7d2e4;background:#f7f9fc;border-radius:8px;padding:6px 10px;font-size:12px;color:var(--navy2);text-align:left}
+.skipbar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border-bottom:1px solid var(--line);padding:10px 14px;font-size:13px;color:var(--mute)}
+.skipbar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font-size:13px}
+/* ---- 報告（オーナー一覧・作成） ---- */
+.own{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:none;border-bottom:1px solid var(--line);padding:14px;min-height:64px}
+.own:last-child{border-bottom:none}
+.own .nm{font-weight:700;font-size:16px;flex:1;min-width:0}
+.own .nm small{display:block;font-weight:400;font-size:12px;color:var(--mute)}
+.own .st{flex:none;font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;background:#e5e7eb;color:#374151}
+.own .st.done{background:#d1fae5;color:#065f46}
+.cmp{padding:14px}
+.cmp .txt{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;white-space:pre-wrap;font-size:14px;line-height:1.9}
+.cmp h3{font-size:13px;color:var(--navy);margin:16px 0 6px}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.acts button{border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:11px;padding:13px 8px;font-size:14px;font-weight:700}
+.acts button.pri{background:var(--orange);border-color:var(--orange);color:#fff}
+.acts button.wide{grid-column:1/-1}
+.acts button.done{background:var(--ok);border-color:var(--ok);color:#fff}
+/* ---- シート（体重取り込み） ---- */
+.sheet{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.45);display:flex;align-items:flex-end}
+.sheet .in{background:#fff;width:100%;max-height:92vh;display:flex;flex-direction:column;border-radius:16px 16px 0 0}
+.sheet .sh{display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid var(--line)}
+.sheet .sh h2{font-size:16px;margin:0}
+.sheet .sb{padding:14px;overflow:auto;flex:1}
+.sheet .sf{padding:12px 14px calc(env(safe-area-inset-bottom) + 12px);border-top:1px solid var(--line);display:flex;gap:10px}
+.sheet .sf button{flex:1;border-radius:11px;padding:13px;font-size:15px;font-weight:700;border:1.5px solid var(--navy);background:#fff;color:var(--navy)}
+.sheet .sf button.pri{background:var(--navy);color:#fff}
+.sheet .sf button:disabled{opacity:.45}
+.note{font-size:12px;color:var(--mute);line-height:1.8;background:#f7f9fc;border-radius:10px;padding:10px}
+.ta{width:100%;min-height:150px;border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+.drow{display:flex;align-items:center;gap:8px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line)}
+.drow .n{flex:1;min-width:0;font-weight:600}
+.drow .s{color:var(--mute);font-size:12px}
+.drow .w{font-weight:700}
+.wline{font-size:13px;color:var(--navy);font-weight:700;margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -119,9 +172,9 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
   <header class="bar" id="bar">
     <div class="wrap">
       <div class="row">
-        <button class="back" id="backBtn" hidden>‹ 一覧</button>
+        <button class="back" id="backBtn" hidden>‹ 戻る</button>
         <div class="logo" id="logo">北</div>
-        <div style="flex:1;min-width:0"><h1 id="title">月次報告 写真</h1><div class="sub" id="subtitle"></div></div>
+        <div style="flex:1;min-width:0"><h1 id="title">月次報告</h1><div class="sub" id="subtitle"></div></div>
         <button class="chip" id="syncChip">保存済み</button>
       </div>
     </div>
@@ -132,6 +185,10 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
   <main class="wrap">
     <section id="home">
       <div class="tools" id="tools">
+        <div class="seg modes" id="modeSeg">
+          <button data-m="photo">写真を撮る</button>
+          <button data-m="report">報告を作る</button>
+        </div>
         <div class="seg" id="seg">
           <button data-f="foal">当歳</button>
           <button data-f="yearling">一才</button>
@@ -140,7 +197,10 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
           <button data-f="left">退厩</button>
         </div>
         <input class="search" id="q" type="search" placeholder="馬名・オーナーで探す" autocomplete="off">
-        <div class="month"><span id="monthLabel"></span><span id="monthStat"></span></div>
+        <div class="month">
+          <span class="nav"><button id="ymPrev" aria-label="前の月">‹</button><b id="monthLabel"></b><button id="ymNext" aria-label="次の月">›</button></span>
+          <span id="monthStat"></span>
+        </div>
       </div>
       <div id="list"></div>
     </section>
@@ -150,9 +210,13 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
         <button class="btn main" id="shootBtn">📷 撮る</button>
         <button class="btn sub" id="pickBtn">アルバムから</button>
       </div>
-      <div class="hint">撮った写真はこの馬に紐づいて保存されます。報告に使う写真は右上の ○ をタップして選びます。</div>
+      <div class="skipbar" id="skipBar"></div>
+      <div class="form" id="form"></div>
+      <div class="hint">報告に使う写真は右上の ○ をタップして選びます。</div>
       <div id="photos"></div>
     </section>
+
+    <section id="compose" hidden><div class="cmp" id="cmpBody"></div></section>
   </main>
 </div>
 
@@ -164,41 +228,71 @@ header.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;pa
   <div class="img"><img id="vImg" alt=""></div>
   <div class="bot"><button id="vSel">報告に使う</button><button class="del" id="vDel">削除</button></div>
 </div>
+
+<div id="wi" class="sheet" hidden><div class="in">
+  <div class="sh"><h2>体重をまとめて取り込む</h2><button class="back" style="background:var(--bg);color:var(--text)" id="wiClose">閉じる</button></div>
+  <div class="sb">
+    <div class="note">スプレッドシートの表をそのまま貼り付けてください。次の形に対応しています。<br>
+    ① 1行目が月（4月／2026-04 など）、2行目から「馬名 体重 体重 …」<br>
+    ② 1行ずつ「馬名, 2026-06, 320」<br>
+    ③ 1行目が月齢（0ヶ月 1ヶ月 …）。生年月日の列があれば自動で月に換算します。<br>
+    年が無い月は、上で選んでいる年として扱います。馬名は登録名と部分一致で照合します。</div>
+    <textarea id="wiText" class="ta" placeholder="トモノメジェール2026	215	233	245"></textarea>
+    <div id="wiPreview" style="margin-top:10px"></div>
+  </div>
+  <div class="sf"><button id="wiCheck">内容を確認</button><button class="pri" id="wiApply" disabled>取り込む</button></div>
+</div></div>
+
 <div id="toast" hidden></div>
 
 <script>
 "use strict";
 /* =====================================================================
-   北洋牧場 月次報告アプリ  第1段階：撮る・貯める・選ぶ
+   北洋牧場 月次報告アプリ
    ・Firebase プロジェクト hokuyo-emr に相乗り（ログインはカルテ／牧場管理と共通）
    ・馬とオーナーは牧場管理アプリの farm_data/horses を「読むだけ」（書き込みはしない）
    ・写真本体は Firebase Storage（farm_photos/馬ID/…）、写真の情報は Firestore（farm_photos）
+   ・体重・出来事・コメント・送信済みは Firestore（farm_reports）
    ・電波が悪いときは端末内にためておき、つながったら自動で送る
    ===================================================================== */
-const APP_VER="1.4", APP_BUILD="2026-10-04";
+const APP_VER="2.0", APP_BUILD="2026-10-15";
 const FB_CONFIG={apiKey:"AIzaSyCpBn2haBU1zEIepTpCwF8KeL5v_2_Lnzc",authDomain:"hokuyo-emr.firebaseapp.com",projectId:"hokuyo-emr",storageBucket:"hokuyo-emr.firebasestorage.app",messagingSenderId:"687686923750",appId:"1:687686923750:web:34853b887e5873f7fe9227"};
 const COL_HORSES="farm_data", DOC_HORSES="horses";   // 牧場管理アプリのデータ（読み取り専用）
-const COL_PHOTOS="farm_photos";                      // このアプリの写真情報
-const ST_DIR="farm_photos";                          // Storage のフォルダ
+const COL_PHOTOS="farm_photos";                      // 写真の情報
+const COL_REPORTS="farm_reports";                    // 体重・出来事・コメント・送信済み
+const ST_DIR="farm_photos";
 const LONG_EDGE=1600, JPEG_Q=0.85, THUMB_EDGE=400, THUMB_Q=0.7;
-const LS_HORSES="hr_horses_cache", LS_FILTER="hr_filter";
+const LS_HORSES="hr_horses_cache", LS_FILTER="hr_filter", LS_MODE="hr_mode";
+const FARM_NAME="有限会社 北洋牧場";
+const EVENTS=["離乳","削蹄","ワクチン","駆虫","移動","放牧開始","夜間放牧","馴致開始","装蹄","獣医診察"];
+const PHRASES={
+  "当歳":["順調に成育しています。","母馬とともに元気に放牧しています。","離乳後も食欲旺盛で落ち着いています。","活発でよく走っています。"],
+  "一才":["体は一回り大きくなり、成長が見られます。","馴致を始め、落ち着いて受け入れています。","群れの中でも物怖じせず元気です。","脚元に問題なく順調です。"],
+  "繁殖":["体調に変わりなく順調です。","妊娠経過は順調です。","子馬とともに放牧しています。"],
+  "育成":["順調に成長しています。"]
+};
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pad=n=>String(n).padStart(2,"0");
 const ymOf=t=>{const d=new Date(t);return d.getFullYear()+"-"+pad(d.getMonth()+1)};
-const ymLabel=ym=>{const[y,m]=ym.split("-");return y+"年"+Number(m)+"月"};
+const ymLabel=ym=>{const[y,m]=String(ym).split("-");return y+"年"+Number(m)+"月"};
 const dayLabel=t=>{const d=new Date(t);return (d.getMonth()+1)+"/"+d.getDate()};
 const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+const ymShift=(ym,n)=>{const[y,m]=ym.split("-").map(Number);const d=new Date(y,m-1+n,1);return d.getFullYear()+"-"+pad(d.getMonth()+1)};
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 
 /* ---------- 状態 ---------- */
 const S={user:null,horses:[],horsesFrom:"",monthPhotos:[],horsePhotos:[],queue:[],view:"home",horseId:null,
-  filter:["foal","yearling","mare","all","left"].includes(lsGet(LS_FILTER))?lsGet(LS_FILTER):"foal",q:"",uploading:false,upErr:null,dataErr:null,viewer:null,panel:false,online:navigator.onLine};
+  mode:lsGet(LS_MODE)==="report"?"report":"photo",
+  filter:["foal","yearling","mare","all","left"].includes(lsGet(LS_FILTER))?lsGet(LS_FILTER):"foal",q:"",
+  ym:ymOf(Date.now()),ymAuto:true,
+  repMonth:{},repHorse:[],sent:[],composeOwner:null,
+  uploading:false,upErr:null,dataErr:null,viewer:null,panel:false,online:navigator.onLine};
 let fbAuth=null,fbDb=null,fbSt=null,FB_ERR=null;
-let unsubHorses=null,unsubMonth=null,unsubHorse=null;
-const thumbUrls=new Map();   // 送信待ち写真のサムネイル（端末内）
+let unsubHorses=null,unsubMonth=null,unsubHorse=null,unsubRep=null,unsubSent=null,unsubRepHorse=null;
+const thumbUrls=new Map();
 
 /* ---------- Firebase ---------- */
 try{
@@ -214,7 +308,7 @@ function errMsg(e){
   if(c==="storage/bucket-not-found"||c==="storage/project-not-found"||c==="storage/object-not-found"||/404|not\s*found|does not exist/i.test(m))return "写真の保存先（Firebase Storage）がまだ使える状態になっていません。Firebase コンソールで Storage を有効にしてください。";
   if(c==="storage/retry-limit-exceeded"||c==="storage/canceled"||c==="unavailable"||/network/i.test(m))return "電波が弱く、送信できませんでした。つながったら自動で送り直します。";
   if(c==="storage/quota-exceeded")return "保存容量の上限に達しました。";
-  if(c==="permission-denied")return "Firestore のルールで拒否されました。farm_photos コレクションの読み書き許可が必要です。";
+  if(c==="permission-denied")return "Firestore のルールで拒否されました。farm_photos と farm_reports の読み書き許可が必要です。";
   if(c==="storage/unknown")return "写真の保存先（Firebase Storage）に保存できませんでした。Storage が有効になっているか確認してください。";
   return m;
 }
@@ -274,8 +368,6 @@ async function shrink(file){
     return{buf:await big.blob.arrayBuffer(),thumb:await th.blob.arrayBuffer(),w:big.w,h:big.h};
   }finally{URL.revokeObjectURL(url)}
 }
-/* 写真に記録されている撮影日時（EXIF）を読む。無ければ null
-   JPEG でも HEIC（iPhone の標準形式）でも、ファイル先頭付近の "Exif" 目印を探して読む */
 async function exifDate(file){
   try{
     const u=new Uint8Array(await file.slice(0,1048576).arrayBuffer());const v=new DataView(u.buffer);
@@ -304,17 +396,17 @@ function orientOf(w,h){const r=w/h;return r>1.1?"横":r<0.9?"縦":"正方"}
 
 /* ---------- 馬の一覧（牧場管理のデータを読むだけ） ---------- */
 function isActive(h){return !h.exit||String(h.exit)>=todayStr()}
+function inMonth(h,ym){return !h.exit||String(h.exit).slice(0,7)>=ym}
 function ownerLabel(h){
   if(h.isShared)return "北洋牧場（共有"+(h.coOwner?"："+h.coOwner:"")+"）";
   if(h.selfOwned)return "北洋牧場（自己所有）";
   return h.owner||"（オーナー未設定）";
 }
+function isSelfOwner(k){return k.indexOf("北洋牧場")===0}
 function ownerRank(h){return h.isShared?1:h.selfOwned?2:0}
 function catClass(c){return c==="当歳"?"b-f":c==="一才"?"b-y":c==="繁殖"?"b-b":"b-e"}
 const CAT_ORD={"当歳":0,"一才":1,"育成":2,"繁殖":3};
 function horseById(id){return S.horses.find(h=>String(h.id)===String(id))}
-/* 生まれ年から区分を自動判定（年が変わると 当歳→一才→育成 と繰り上がる）。
-   繁殖は年齢で動かさない。退厩した馬は退厩した年の時点の区分で止める。牧場管理のデータは書き換えない */
 function birthYear(h){
   let m=String(h.birthDate||"").match(/^(\d{4})/);if(m)return +m[1];
   m=String(h.name||"").match(/(20\d{2})/);return m?+m[1]:null;
@@ -325,6 +417,20 @@ function autoCat(h){
   const base=(h.exit&&String(h.exit)<todayStr()&&/^\d{4}/.test(h.exit))?+String(h.exit).slice(0,4):new Date().getFullYear();
   const a=base-by;
   return a<0?(h.cat||""):a===0?"当歳":a===1?"一才":"育成";
+}
+/* その月の時点での区分（過去月の報告でも当時の区分で出す） */
+function catAt(h,ym){
+  if(h.cat==="繁殖"||h.catReg==="繁殖")return "繁殖";
+  const by=birthYear(h);if(by===null)return h.cat||"";
+  const a=Number(String(ym).slice(0,4))-by;
+  return a<0?(h.cat||""):a===0?"当歳":a===1?"一才":"育成";
+}
+function ageLabel(h,ym){
+  if(!h.birthDate)return "";
+  const b=new Date(h.birthDate);if(isNaN(b))return "";
+  const[y,m]=String(ym).split("-").map(Number);
+  const a=(y-b.getFullYear())*12+(m-1-b.getMonth());
+  return a<0||a>=24?"":"生後"+a+"か月";
 }
 function setHorses(arr,from){
   S.horses=(Array.isArray(arr)?arr:[]).filter(h=>h&&h.id!=null&&h.name).map(h=>({...h,catReg:h.cat,cat:autoCat(h)}));S.horsesFrom=from;S.horsesYear=new Date().getFullYear();
@@ -340,22 +446,61 @@ function listenHorses(){
   },e=>{console.error(e);S.dataErr=errMsg(e);render()});
 }
 function listenMonth(){
-  if(unsubMonth)unsubMonth();
-  const ym=ymOf(Date.now());S.monthYm=ym;
+  [unsubMonth,unsubRep,unsubSent].forEach(f=>{if(f)try{f()}catch(e){}});
+  unsubMonth=unsubRep=unsubSent=null;
+  const ym=S.ym;
   unsubMonth=fbDb.collection(COL_PHOTOS).where("ym","==",ym).onSnapshot(snap=>{
     S.monthPhotos=snap.docs.map(d=>({id:d.id,...d.data()}));
-    if(S.view==="home")renderHome();
+    if(S.view==="home")renderHome();else if(S.view==="compose")renderCompose();
   },e=>{console.error(e);S.dataErr=errMsg(e);render()});
+  unsubRep=fbDb.collection(COL_REPORTS).where("ym","==",ym).onSnapshot(snap=>{
+    const m={};snap.docs.forEach(d=>{const v=d.data();if(v&&v.horseId)m[String(v.horseId)]=v});
+    S.repMonth=m;
+    if(S.view==="home")renderHome();else if(S.view==="compose")renderCompose();else if(S.view==="horse")renderForm();
+  },e=>{console.error(e);S.dataErr=errMsg(e);render()});
+  unsubSent=fbDb.collection(COL_REPORTS).doc("sent__"+ym).onSnapshot(snap=>{
+    const d=snap.exists?snap.data():null;S.sent=(d&&Array.isArray(d.owners))?d.owners:[];
+    if(S.view==="home")renderHome();else if(S.view==="compose")renderCompose();
+  },e=>console.warn(e));
 }
 function listenHorse(id){
-  if(unsubHorse){unsubHorse();unsubHorse=null}
-  S.horsePhotos=[];S.horseLoaded=false;
+  [unsubHorse,unsubRepHorse].forEach(f=>{if(f)try{f()}catch(e){}});
+  unsubHorse=unsubRepHorse=null;
+  S.horsePhotos=[];S.horseLoaded=false;S.repHorse=[];
   if(id==null)return;
   unsubHorse=fbDb.collection(COL_PHOTOS).where("horseId","==",String(id)).onSnapshot(snap=>{
     S.horsePhotos=snap.docs.map(d=>({id:d.id,...d.data()}));S.horseLoaded=true;
     if(S.view==="horse")renderHorse();
     if(S.viewer)renderViewer();
   },e=>{console.error(e);S.horseLoaded=true;S.dataErr=errMsg(e);render()});
+  unsubRepHorse=fbDb.collection(COL_REPORTS).where("horseId","==",String(id)).onSnapshot(snap=>{
+    S.repHorse=snap.docs.map(d=>d.data()).filter(v=>v&&v.ym);
+    if(S.view==="horse")renderHorse();
+  },e=>console.warn(e));
+}
+
+/* ---------- 月次の記録（体重・出来事・コメント） ---------- */
+function repId(ym,hid){return ym+"__"+hid}
+function blankRep(hid,ym){
+  const h=horseById(hid);
+  /* 繁殖は既定では報告に含めない。ただしその月に退厩した馬は必ず載せる */
+  const left=!!(h&&h.exit&&String(h.exit).slice(0,7)===ym);
+  return{ym,horseId:String(hid),weight:"",events:[],comment:"",skip:!!h&&catAt(h,ym)==="繁殖"&&!left};
+}
+function repOf(hid){return S.repMonth[String(hid)]||blankRep(hid,S.ym)}
+async function saveRep(hid,patch){
+  const cur=repOf(hid);const next={...cur,...patch,ym:S.ym,horseId:String(hid)};
+  S.repMonth[String(hid)]=next;
+  try{
+    await fbDb.collection(COL_REPORTS).doc(repId(S.ym,hid)).set({
+      ym:next.ym,horseId:next.horseId,weight:String(next.weight||""),events:next.events||[],
+      comment:next.comment||"",skip:!!next.skip,at:Date.now(),by:(S.user&&S.user.email)||""
+    },{merge:true});
+  }catch(e){console.error(e);toast(errMsg(e))}
+}
+function lastWeight(hid){
+  const arr=S.repHorse.filter(r=>r.ym<S.ym&&r.weight).sort((a,b)=>a.ym<b.ym?1:-1);
+  return arr.length?{ym:arr[0].ym,w:Number(arr[0].weight)}:null;
 }
 
 /* ---------- 撮影 → 縮小 → 端末に保存 → 送信 ---------- */
@@ -370,7 +515,7 @@ async function addFiles(files,fromCamera){
       if(!fromCamera){
         const ex=await exifDate(f);
         if(ex)takenAt=ex;
-        else{noDate++;if(f.lastModified&&Date.now()-f.lastModified>3600000)takenAt=f.lastModified}   // 撮影日が無ければファイルの日付を仮に使う
+        else{noDate++;if(f.lastModified&&Date.now()-f.lastModified>3600000)takenAt=f.lastModified}
       }
       const id=takenAt+"_"+Math.random().toString(36).slice(2,8);
       const rec={id,horseId:String(h.id),horseName:h.name,owner:ownerLabel(h),cat:h.cat||"",takenAt,ym:ymOf(takenAt),w:r.w,h:r.h,orient:orientOf(r.w,r.h),selected:false,buf:r.buf,thumb:r.thumb};
@@ -396,7 +541,7 @@ async function pump(){
       const url=await r1.getDownloadURL();
       const r2=fbSt.ref(base+"_t.jpg");await r2.put(new Blob([rec.thumb],{type:"image/jpeg"}),meta);
       const thumbUrl=await r2.getDownloadURL();
-      const cur=(await qGet(id))||rec;   // 送信中に選択が変わっていれば反映
+      const cur=(await qGet(id))||rec;
       await fbDb.collection(COL_PHOTOS).doc(rec.id).set({
         horseId:rec.horseId,horseName:rec.horseName,owner:rec.owner,cat:rec.cat,takenAt:rec.takenAt,ym:rec.ym,
         w:rec.w,h:rec.h,orient:rec.orient,selected:!!cur.selected,url,thumbUrl,path:base+".jpg",thumbPath:base+"_t.jpg",
@@ -411,7 +556,7 @@ async function pump(){
 }
 
 /* ---------- 選ぶ・消す ---------- */
-function findPhoto(id){return S.queue.find(p=>p.id===id)||S.horsePhotos.find(p=>p.id===id)}
+function findPhoto(id){return S.queue.find(p=>p.id===id)||S.horsePhotos.find(p=>p.id===id)||S.monthPhotos.find(p=>p.id===id)}
 async function toggleSel(id){
   const p=findPhoto(id);if(!p)return;const v=!p.selected;
   try{
@@ -443,6 +588,138 @@ async function delPhoto(id){
   }catch(e){console.error(e);toast(errMsg(e))}
 }
 
+/* ---------- 報告の組み立て ---------- */
+function monthPhotosAll(){return S.monthPhotos.concat(S.queue.filter(p=>p.ym===S.ym))}
+function selectedOf(hid){return monthPhotosAll().filter(p=>String(p.horseId)===String(hid)&&p.selected).sort((a,b)=>a.takenAt-b.takenAt)}
+function ownerHorses(k){
+  return S.horses.filter(h=>ownerLabel(h)===k&&inMonth(h,S.ym))
+    .sort((a,b)=>((CAT_ORD[catAt(a,S.ym)]??9)-(CAT_ORD[catAt(b,S.ym)]??9))||String(a.name).localeCompare(String(b.name),"ja"));
+}
+function ownerKeys(){
+  const set=new Map();
+  S.horses.filter(h=>inMonth(h,S.ym)).forEach(h=>{const k=ownerLabel(h);if(!set.has(k))set.set(k,ownerRank(h))});
+  return[...set.keys()].sort((a,b)=>set.get(a)-set.get(b)||a.localeCompare(b,"ja"));
+}
+function hasContent(h){
+  const r=repOf(h.id);
+  if(r.skip)return false;
+  return !!(r.weight||((r.events||[]).length)||r.comment||selectedOf(h.id).length||(h.exit&&String(h.exit).slice(0,7)===S.ym));
+}
+function buildText(k){
+  const hs=ownerHorses(k).filter(hasContent);
+  const lines=[isSelfOwner(k)?k:k+" 様","",ymLabel(S.ym)+"の預託馬の近況をご報告いたします。",""];
+  hs.forEach(h=>{
+    const r=repOf(h.id);const c=catAt(h,S.ym);const al=ageLabel(h,S.ym);
+    lines.push("■ "+h.name+"（"+c+(al?"・"+al:"")+"）");
+    if(r.weight){const lw=lastWeight2(h.id);const d=lw?Number(r.weight)-lw.w:null;
+      lines.push("体重 "+r.weight+"kg"+(d!==null&&!isNaN(d)?"（前回比 "+(d>=0?"+":"")+d+"kg）":""));}
+    if((r.events||[]).length)lines.push(r.events.join("・"));
+    if(h.exit&&String(h.exit).slice(0,7)===S.ym)lines.push(Number(String(h.exit).slice(5,7))+"月"+Number(String(h.exit).slice(8,10))+"日 退厩");
+    if(r.comment)lines.push(String(r.comment).trim());
+    const n=selectedOf(h.id).length;if(n)lines.push("写真 "+n+"枚");
+    lines.push("");
+  });
+  lines.push("引き続きよろしくお願いいたします。","",FARM_NAME);
+  return lines.join("\n");
+}
+/* 一覧・報告の画面では各馬の過去分を持っていないので、同じ月の記録から前回を探す簡易版 */
+const prevWeightCache={};
+function lastWeight2(hid){
+  if(S.horseId&&String(S.horseId)===String(hid)){const lw=lastWeight(hid);if(lw)return lw}
+  return prevWeightCache[String(hid)]||null;
+}
+async function loadPrevWeights(k){
+  const hs=ownerHorses(k);
+  const prev=ymShift(S.ym,-1);
+  try{
+    const snap=await fbDb.collection(COL_REPORTS).where("ym","==",prev).get();
+    snap.docs.forEach(d=>{const v=d.data();if(v&&v.horseId&&v.weight)prevWeightCache[String(v.horseId)]={ym:prev,w:Number(v.weight)}});
+  }catch(e){console.warn(e)}
+}
+
+/* ---------- 共有・印刷 ---------- */
+async function photoFiles(k){
+  const files=[];let failed=0;
+  for(const h of ownerHorses(k).filter(hasContent)){
+    const ps=selectedOf(h.id);
+    for(let i=0;i<ps.length;i++){
+      const p=ps[i];const nm=h.name+"_"+(i+1)+".jpg";
+      try{
+        if(p.queued){const rec=await qGet(p.id);if(rec)files.push(new File([rec.buf],nm,{type:"image/jpeg"}));}
+        else{const r=await fetch(p.url);const b=await r.blob();files.push(new File([b],nm,{type:"image/jpeg"}));}
+      }catch(e){console.warn("photo fetch",e);failed++}
+    }
+  }
+  return{files,failed};
+}
+function copyText(t){
+  const fb=()=>{try{prompt("長押しでコピーしてください",t)}catch(e){}};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast("文章をコピーしました。LINEで長押し→ペースト"),fb);
+  else{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("文章をコピーしました")}catch(e){fb()}ta.remove()}
+}
+function shareErr(e){
+  if(e&&e.name==="AbortError")return;
+  alert("共有画面を開けませんでした。\n"+((e&&e.message)||"")+"\n\n「文章をコピー」で貼り付けてください。");
+}
+async function shareAll(k){
+  const text=buildText(k);
+  if(!navigator.share){copyText(text);return}
+  toast("写真を準備しています…",0);
+  const{files,failed}=await photoFiles(k);
+  toast("",1);$("toast").hidden=true;
+  const data=(files.length&&navigator.canShare&&navigator.canShare({files}))?{text,files}:{text};
+  if(failed&&!files.length)toast("写真を添付できませんでした。文章のみ共有します。",4000);
+  navigator.share(data).catch(shareErr);
+}
+async function sharePhotosOnly(k){
+  toast("写真を準備しています…",0);
+  const{files,failed}=await photoFiles(k);
+  $("toast").hidden=true;
+  if(!files.length){alert(failed?"写真を読み込めませんでした。印刷・PDF をお使いください。":"選ばれた写真がありません。");return}
+  if(navigator.canShare&&navigator.canShare({files}))navigator.share({files}).catch(shareErr);
+  else alert("この端末では写真の共有に対応していません。印刷・PDF をお使いください。");
+}
+function printReport(k){
+  const hs=ownerHorses(k).filter(hasContent);
+  let body='<h1>'+esc(ymLabel(S.ym))+"　近況報告</h1>";
+  body+='<p class="to">'+esc(isSelfOwner(k)?k:k+" 様")+"</p>";
+  body+='<p class="ld">'+esc(ymLabel(S.ym))+"の預託馬の近況をご報告いたします。</p>";
+  hs.forEach(h=>{
+    const r=repOf(h.id);const c=catAt(h,S.ym);const al=ageLabel(h,S.ym);
+    body+='<section><h2>'+esc(h.name)+'<small>'+esc(c+(al?"・"+al:""))+"</small></h2>";
+    const meta=[];
+    if(r.weight){const lw=lastWeight2(h.id);const d=lw?Number(r.weight)-lw.w:null;
+      meta.push("体重 "+esc(r.weight)+"kg"+(d!==null&&!isNaN(d)?"（前回比 "+(d>=0?"+":"")+d+"kg）":""));}
+    if((r.events||[]).length)meta.push(esc(r.events.join("・")));
+    if(h.exit&&String(h.exit).slice(0,7)===S.ym)meta.push(Number(String(h.exit).slice(5,7))+"月"+Number(String(h.exit).slice(8,10))+"日 退厩");
+    if(meta.length)body+='<p class="mt">'+meta.join("　／　")+"</p>";
+    if(r.comment)body+="<p>"+esc(r.comment).replace(/\n/g,"<br>")+"</p>";
+    const ps=selectedOf(h.id).filter(p=>p.url||p.thumbUrl);
+    if(ps.length){body+='<div class="pg">';ps.forEach(p=>{body+='<img src="'+esc(p.url||p.thumbUrl)+'">'});body+="</div>"}
+    body+="</section>";
+  });
+  body+='<p class="ft">引き続きよろしくお願いいたします。<br>'+esc(FARM_NAME)+"</p>";
+  const css='@page{size:A4;margin:16mm}*{box-sizing:border-box}body{font-family:"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;color:#111;font-size:12px;line-height:1.8;margin:0}'+
+    'h1{font-size:17px;text-align:center;margin:0 0 12px}.to{font-size:15px;font-weight:700;margin:0 0 4px}.ld{margin:0 0 14px}'+
+    'section{page-break-inside:avoid;border-top:1px solid #ddd;padding:10px 0}h2{font-size:14px;margin:0 0 4px}h2 small{font-weight:400;color:#666;margin-left:8px;font-size:12px}'+
+    '.mt{margin:0 0 4px;color:#333}p{margin:0 0 6px}.pg{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.pg img{width:31%;border-radius:4px}'+
+    '.ft{margin-top:18px;text-align:right}';
+  const w=window.open("","","width=820,height=1000");
+  if(!w){alert("印刷画面を開けませんでした。ブラウザのポップアップ設定を確認してください。");return}
+  w.document.write('<html><head><meta charset="utf-8"><title>'+esc(ymLabel(S.ym)+"_"+k)+"</title><style>"+css+"</style></head><body>"+body+"</body></html>");
+  w.document.close();
+  const imgs=Array.from(w.document.images);let left=imgs.length;
+  const go=()=>{try{w.focus();w.print()}catch(e){}};
+  if(!left)setTimeout(go,300);
+  else{const done=()=>{if(--left<=0)setTimeout(go,300)};imgs.forEach(im=>{if(im.complete)done();else{im.onload=done;im.onerror=done}});setTimeout(go,8000)}
+}
+async function toggleSent(k){
+  const next=S.sent.includes(k)?S.sent.filter(x=>x!==k):S.sent.concat([k]);
+  S.sent=next;renderCompose();renderHome();
+  try{await fbDb.collection(COL_REPORTS).doc("sent__"+S.ym).set({ym:S.ym,owners:next,at:Date.now(),by:(S.user&&S.user.email)||""},{merge:true})}
+  catch(e){console.error(e);toast(errMsg(e))}
+}
+
 /* ---------- 画面 ---------- */
 function toast(msg,ms){
   const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.t);
@@ -453,10 +730,10 @@ function render(){
   if(!fbAuth){$("boot").hidden=false;$("boot").innerHTML="<b>クラウドに接続できません</b><br>"+esc(FB_ERR)+"<br>インターネット接続を確認して、再読み込みしてください。";return}
   $("login").hidden=!!S.user;$("app").hidden=!S.user;
   if(!S.user)return;
-  $("home").hidden=S.view!=="home";$("horse").hidden=S.view!=="horse";
+  $("home").hidden=S.view!=="home";$("horse").hidden=S.view!=="horse";$("compose").hidden=S.view!=="compose";
   $("backBtn").hidden=S.view==="home";$("logo").hidden=S.view!=="home";
   renderSync();
-  if(S.view==="home")renderHome();else renderHorse();
+  if(S.view==="home")renderHome();else if(S.view==="horse")renderHorse();else renderCompose();
   if(S.viewer)renderViewer();
   $("tools").style.top=$("bar").offsetHeight+"px";
 }
@@ -470,26 +747,30 @@ function renderSync(){
   else if(!S.online&&n)html+='<div class="notice warn">オフラインです。写真 '+n+" 枚はこの端末にためてあり、つながると自動で送信します。</div>";
   $("notice").innerHTML=html;
   const p=$("panel");p.hidden=!S.panel;
-  if(S.panel)p.innerHTML="ログイン："+esc(S.user.email)+"<br>登録馬："+S.horses.length+" 頭（牧場管理のデータを参照・"+(S.horsesFrom==="cloud"?"最新":"前回の控え")+"）<br>送信待ち："+n+" 枚<br>バージョン："+APP_VER+"（"+APP_BUILD+'）<br><button id="pumpBtn">今すぐ送信</button><button id="reloadBtn">再読み込み</button><button id="logoutBtn">ログアウト</button>';
+  if(S.panel)p.innerHTML="ログイン："+esc(S.user.email)+"<br>登録馬："+S.horses.length+" 頭（牧場管理のデータを参照・"+(S.horsesFrom==="cloud"?"最新":"前回の控え")+"）<br>送信待ち："+n+" 枚<br>バージョン："+APP_VER+"（"+APP_BUILD+'）<br><button id="wiBtn">体重をまとめて取り込む</button><button id="pumpBtn">今すぐ送信</button><button id="reloadBtn">再読み込み</button><button id="logoutBtn">ログアウト</button>';
 }
 function monthCounts(){
   const m={};const add=p=>{const k=String(p.horseId);(m[k]=m[k]||{n:0,s:0}).n++;if(p.selected)m[k].s++};
-  S.monthPhotos.forEach(add);S.queue.filter(p=>p.ym===S.monthYm).forEach(add);return m;
+  S.monthPhotos.forEach(add);S.queue.filter(p=>p.ym===S.ym).forEach(add);return m;
 }
 function renderHome(){
-  $("title").textContent="月次報告 写真";$("subtitle").textContent="馬をタップして撮影";
+  document.querySelectorAll("#modeSeg button").forEach(b=>b.classList.toggle("on",b.dataset.m===S.mode));
+  $("monthLabel").textContent=ymLabel(S.ym);
+  const rep=S.mode==="report";
+  $("seg").hidden=rep;$("q").hidden=rep;
+  $("title").textContent=rep?"月次報告 作成":"月次報告 写真";
+  $("subtitle").textContent=rep?"オーナーを選んで文章と写真をまとめます":"馬をタップして撮影";
+  if(rep)return renderOwners();
   document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on",b.dataset.f===S.filter));
   const cnt=monthCounts();
   const q=S.q.trim().toLowerCase();
-  const left=S.filter==="left";   // 退厩した馬（過去の写真を見るため別タブに分ける）
+  const left=S.filter==="left";
   let hs=S.horses.filter(h=>left?!isActive(h):isActive(h));
   if(S.filter==="foal")hs=hs.filter(h=>h.cat==="当歳");
   else if(S.filter==="yearling")hs=hs.filter(h=>h.cat==="一才");
   else if(S.filter==="mare")hs=hs.filter(h=>h.cat==="繁殖");
   if(q)hs=hs.filter(h=>[h.name,h.owner,h.coOwner,h.mother,h.sire].some(x=>String(x||"").toLowerCase().includes(q)));
   const done=hs.filter(h=>cnt[String(h.id)]).length;
-  $("monthLabel").textContent=ymLabel(S.monthYm||ymOf(Date.now()))+" の撮影";
-  $("monthLabel").textContent=left?"退厩した馬（写真は残っています）":$("monthLabel").textContent;
   $("monthStat").textContent=!hs.length?"":left?hs.length+" 頭":"撮影済み "+done+" / "+hs.length+" 頭";
   if(!hs.length){
     $("list").innerHTML='<div class="empty">'+(S.horses.length?(left&&!q?"退厩した馬はいません。":"該当する馬がいません。<br>上の切り替えや検索を変えてみてください。"):S.horsesFrom?"牧場管理アプリに馬が登録されていません。":"馬の一覧を読み込んでいます…")+"</div>";return;
@@ -502,8 +783,8 @@ function renderHome(){
     const list=groups.get(k).list.sort((a,b)=>(left?String(b.exit).localeCompare(String(a.exit)):0)||((CAT_ORD[a.cat]??9)-(CAT_ORD[b.cat]??9))||String(a.name).localeCompare(String(b.name),"ja"));
     html+='<div class="grp">'+esc(k)+"<span>"+list.length+' 頭</span></div><div class="list">';
     list.forEach(h=>{
-      const c=cnt[String(h.id)];
-      const ped=[left?String(h.exit).replace(/-/g,"/")+" 退厩":"",h.sire?"父 "+h.sire:"",h.mother?"母 "+h.mother:""].filter(Boolean).join("　");
+      const c=cnt[String(h.id)];const r=S.repMonth[String(h.id)];
+      const ped=[left?String(h.exit).replace(/-/g,"/")+" 退厩":"",r&&r.weight?r.weight+"kg":"",h.sire?"父 "+h.sire:""].filter(Boolean).join("　");
       html+='<button class="horse" data-id="'+esc(h.id)+'"><span class="badge '+catClass(h.cat)+'">'+esc(h.cat||"—")+'</span><span class="nm">'+esc(h.name)+(ped?"<small>"+esc(ped)+"</small>":"")+"</span>"+
         (c?'<span class="cnt"><b>'+c.n+" 枚</b>"+(c.s?'<span class="sel">選択 '+c.s+"</span>":"選択なし")+"</span>":'<span class="cnt none"><b>'+(left?"":"未撮影")+'</b></span>')+"</button>";
     });
@@ -511,30 +792,102 @@ function renderHome(){
   });
   $("list").innerHTML=html+'<div style="height:40px"></div>';
 }
+function renderOwners(){
+  const keys=ownerKeys();
+  const doneN=keys.filter(k=>S.sent.includes(k)).length;
+  $("monthStat").textContent=keys.length?"送信済み "+doneN+" / "+keys.length+" 件":"";
+  if(!keys.length){$("list").innerHTML='<div class="empty">この月に在厩していた馬がいません。</div>';return}
+  let html='<div class="list">';
+  keys.forEach(k=>{
+    const hs=ownerHorses(k);const n=hs.filter(hasContent).length;
+    const ph=hs.reduce((s,h)=>s+selectedOf(h.id).length,0);
+    const sent=S.sent.includes(k);
+    html+='<button class="own" data-k="'+esc(k)+'"><span class="nm">'+esc(k)+"<small>"+hs.length+" 頭"+(n?"・報告 "+n+" 頭":"・未入力")+(ph?"・写真 "+ph+" 枚":"")+'</small></span><span class="st'+(sent?" done":"")+'">'+(sent?"送信済み":"未送信")+"</span></button>";
+  });
+  $("list").innerHTML=html+'</div><div class="hint">オーナーをタップすると、その月の文章と写真がまとまります。</div><div style="height:40px"></div>';
+}
 function horsePhotosAll(){
   const id=String(S.horseId);
   return S.queue.filter(p=>p.horseId===id).concat(S.horsePhotos).sort((a,b)=>b.takenAt-a.takenAt);
 }
+function renderForm(){
+  const h=horseById(S.horseId);if(!h)return;
+  const r=repOf(h.id);const c=catAt(h,S.ym);
+  const sb=$("skipBar");
+  sb.innerHTML="<span>"+esc(ymLabel(S.ym))+"の報告"+(r.skip?"：この馬は<b>除外中</b>":"")+'</span><button id="skipBtn">'+(r.skip?"報告に含める":"報告から除く")+"</button>";
+  const f=$("form");
+  if(r.skip){f.hidden=true;return}
+  f.hidden=false;
+  const lw=lastWeight(h.id);
+  const d=lw&&r.weight?Number(r.weight)-lw.w:null;
+  let html='<div class="fr"><label class="lb" for="wt">体重</label><input class="wt" id="wt" type="number" inputmode="numeric" placeholder="kg" value="'+esc(r.weight||"")+'">'+
+    '<span class="diff '+(d>0?"up":d<0?"down":"")+'">'+(d!==null&&!isNaN(d)?(d>=0?"+":"")+d+"kg":"")+'</span>'+
+    (lw?'<span class="prev">前回 '+esc(ymLabel(lw.ym))+" "+lw.w+"kg</span>":"")+"</div>";
+  html+='<div class="evs" id="evs">';
+  const evs=EVENTS.concat((r.events||[]).filter(e=>EVENTS.indexOf(e)<0));
+  evs.forEach(e=>{html+='<button class="ev'+((r.events||[]).indexOf(e)>=0?" on":"")+'" data-e="'+esc(e)+'">'+esc(e)+"</button>"});
+  html+='<button class="ev" data-e="__add">＋その他</button></div>';
+  html+='<textarea class="cm" id="cm" placeholder="現況をひとこと">'+esc(r.comment||"")+"</textarea>";
+  const ps=PHRASES[c]||PHRASES["育成"];
+  html+='<div class="phr" id="phr">'+ps.map(p=>'<button data-p="'+esc(p)+'">'+esc(p.replace(/。$/,""))+"</button>").join("")+"</div>";
+  f.innerHTML=html;
+}
 function renderHorse(){
   const h=horseById(S.horseId);
   $("title").textContent=h?h.name:"（馬が見つかりません）";
-  $("subtitle").textContent=h?[h.cat,ownerLabel(h)].filter(Boolean).join("・"):"";
+  $("subtitle").textContent=h?[catAt(h,S.ym),ownerLabel(h)].filter(Boolean).join("・"):"";
+  renderForm();
   const ps=horsePhotosAll();
-  $("shootBtn").textContent=ps.some(p=>p.ym===S.monthYm)?"📷 続けて撮る":"📷 撮る";
-  if(!ps.length){$("photos").innerHTML='<div class="empty">'+(S.horseLoaded?"まだ写真がありません。<br>「撮る」で撮影すると、この馬の写真としてたまっていきます。":"読み込み中…")+"</div>";return}
+  $("shootBtn").textContent=ps.some(p=>p.ym===S.ym)?"📷 続けて撮る":"📷 撮る";
+  const wmap={};S.repHorse.forEach(r=>{if(r.weight)wmap[r.ym]=r.weight});
+  const cmap={};S.repHorse.forEach(r=>{if(r.comment)cmap[r.ym]=r.comment});
+  if(!ps.length){
+    const hist=Object.keys(wmap).sort().reverse();
+    $("photos").innerHTML='<div class="empty">'+(S.horseLoaded?"まだ写真がありません。<br>「撮る」で撮影すると、この馬の写真としてたまっていきます。":"読み込み中…")+"</div>"+
+      (hist.length?'<div class="mh">体重の記録<span>'+hist.length+" か月</span></div><div class=\"hint\">"+hist.map(k=>esc(ymLabel(k))+" "+esc(wmap[k])+"kg").join("　→　")+"</div>":"");
+    return;
+  }
   const byYm=new Map();ps.forEach(p=>{if(!byYm.has(p.ym))byYm.set(p.ym,[]);byYm.get(p.ym).push(p)});
+  Object.keys(wmap).forEach(k=>{if(!byYm.has(k))byYm.set(k,[])});
   let html="";
   [...byYm.keys()].sort().reverse().forEach(ym=>{
     const list=byYm.get(ym);const s=list.filter(p=>p.selected).length;
-    html+='<div class="mh">'+ymLabel(ym)+"<span>"+list.length+" 枚"+(s?"・選択 "+s:"")+'</span></div><div class="grid">';
-    list.forEach(p=>{
-      html+='<div class="ph'+(p.selected?" on":"")+'" data-id="'+esc(p.id)+'"><img loading="lazy" src="'+esc(p.thumbUrl)+'" alt="">'+
-        (p.queued?'<span class="w">送信待ち</span>':"")+'<span class="o">'+esc(p.orient)+'</span><span class="d">'+dayLabel(p.takenAt)+
-        '</span><button class="star" aria-label="報告に使う"><i>✓</i></button></div>';
-    });
-    html+="</div>";
+    const info=[wmap[ym]?wmap[ym]+"kg":"",list.length?list.length+" 枚"+(s?"・選択 "+s:""):""].filter(Boolean).join("・");
+    html+='<div class="mh">'+ymLabel(ym)+"<span>"+esc(info)+"</span></div>";
+    if(cmap[ym])html+='<div class="hint">'+esc(cmap[ym])+"</div>";
+    if(list.length){
+      html+='<div class="grid">';
+      list.forEach(p=>{
+        html+='<div class="ph'+(p.selected?" on":"")+'" data-id="'+esc(p.id)+'"><img loading="lazy" src="'+esc(p.thumbUrl)+'" alt="">'+
+          (p.queued?'<span class="w">送信待ち</span>':"")+'<span class="o">'+esc(p.orient)+'</span><span class="d">'+dayLabel(p.takenAt)+
+          '</span><button class="star" aria-label="報告に使う"><i>✓</i></button></div>';
+      });
+      html+="</div>";
+    }
   });
   $("photos").innerHTML=html+'<div style="height:40px"></div>';
+}
+function renderCompose(){
+  const k=S.composeOwner;if(!k){goHome();return}
+  $("title").textContent=k;
+  $("subtitle").textContent=ymLabel(S.ym)+" の報告";
+  const hs=ownerHorses(k).filter(hasContent);
+  const text=buildText(k);
+  const sent=S.sent.includes(k);
+  let html='<div class="txt">'+esc(text)+"</div>";
+  const ph=[];hs.forEach(h=>selectedOf(h.id).forEach(p=>ph.push(p)));
+  html+="<h3>送る写真（"+ph.length+" 枚）</h3>";
+  if(ph.length){html+='<div class="grid" style="padding:0">';ph.forEach(p=>{html+='<div class="ph"><img loading="lazy" src="'+esc(p.thumbUrl)+'" alt=""><span class="o">'+esc(p.horseName||"")+"</span></div>"});html+="</div>"}
+  else html+='<div class="empty" style="padding:18px">選ばれた写真がありません。<br>写真の画面で ○ をタップして選んでください。</div>';
+  html+='<div class="acts">'+
+    '<button class="pri wide" id="aShare">文章と写真を送る</button>'+
+    '<button id="aCopy">文章をコピー</button>'+
+    '<button id="aPhoto">写真だけ送る</button>'+
+    '<button class="wide" id="aPrint">印刷・PDFにする</button>'+
+    '<button class="wide'+(sent?" done":"")+'" id="aSent">'+(sent?"✓ 送信済み（取り消す）":"送信済みにする")+"</button>"+
+    "</div>";
+  html+='<div class="hint" style="padding:14px 0 0">文章と写真をまとめて送れないときは、「文章をコピー」でLINEに貼り付け、写真は「写真だけ送る」でお送りください。</div>';
+  $("cmpBody").innerHTML=html;
 }
 let viewerUrl=null;
 async function openViewer(id){
@@ -558,24 +911,69 @@ function closeViewer(){
 }
 function openHorse(id){
   S.view="horse";S.horseId=String(id);listenHorse(id);
-  try{history.pushState({h:String(id)},"")}catch(e){}
+  try{history.pushState({v:"horse"},"")}catch(e){}
   render();window.scrollTo(0,0);
 }
-function goHome(){S.view="home";S.horseId=null;listenHorse(null);render()}
+function openCompose(k){
+  S.view="compose";S.composeOwner=k;
+  try{history.pushState({v:"compose"},"")}catch(e){}
+  render();window.scrollTo(0,0);
+  loadPrevWeights(k).then(()=>{if(S.view==="compose")renderCompose()});
+}
+function goHome(){S.view="home";S.horseId=null;S.composeOwner=null;listenHorse(null);render()}
+function setYm(ym){
+  S.ym=ym;S.ymAuto=(ym===ymOf(Date.now()));
+  listenMonth();render();
+}
 
 /* ---------- 操作 ---------- */
-$("list").addEventListener("click",e=>{const b=e.target.closest(".horse");if(b)openHorse(b.dataset.id)});
+$("list").addEventListener("click",e=>{
+  const o=e.target.closest(".own");if(o){openCompose(o.dataset.k);return}
+  const b=e.target.closest(".horse");if(b)openHorse(b.dataset.id);
+});
+$("modeSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.mode=b.dataset.m;lsSet(LS_MODE,S.mode);renderHome()});
 $("seg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.filter=b.dataset.f;lsSet(LS_FILTER,S.filter);renderHome()});
 $("q").addEventListener("input",e=>{S.q=e.target.value;renderHome()});
-$("backBtn").addEventListener("click",()=>{if(history.state&&history.state.h)history.back();else goHome()});
-window.addEventListener("popstate",()=>{if(S.viewer){closeViewer()}if(S.view==="horse")goHome()});
+$("ymPrev").addEventListener("click",()=>setYm(ymShift(S.ym,-1)));
+$("ymNext").addEventListener("click",()=>{const n=ymShift(S.ym,1);if(n>ymOf(Date.now())){toast("来月の報告はまだ作れません");return}setYm(n)});
+$("backBtn").addEventListener("click",()=>{if(history.state&&history.state.v)history.back();else goHome()});
+window.addEventListener("popstate",()=>{if(S.viewer){closeViewer()}if(S.view!=="home")goHome()});
 $("shootBtn").addEventListener("click",()=>$("cam").click());
 $("pickBtn").addEventListener("click",()=>$("lib").click());
 $("cam").addEventListener("change",e=>{const f=e.target.files;addFiles(f,true).finally(()=>{e.target.value=""})});
 $("lib").addEventListener("change",e=>{const f=e.target.files;addFiles(f,false).finally(()=>{e.target.value=""})});
 $("photos").addEventListener("click",e=>{
-  const ph=e.target.closest(".ph");if(!ph)return;
+  const ph=e.target.closest(".ph");if(!ph||!ph.dataset.id)return;
   if(e.target.closest(".star"))toggleSel(ph.dataset.id);else openViewer(ph.dataset.id);
+});
+let wtTimer=null;
+$("form").addEventListener("input",e=>{
+  if(e.target.id==="wt"){clearTimeout(wtTimer);const v=e.target.value;wtTimer=setTimeout(()=>{saveRep(S.horseId,{weight:v}).then(()=>renderForm())},600)}
+  else if(e.target.id==="cm"){clearTimeout(wtTimer);const v=e.target.value;wtTimer=setTimeout(()=>saveRep(S.horseId,{comment:v}),700)}
+});
+$("form").addEventListener("click",e=>{
+  const ev=e.target.closest(".ev");
+  if(ev){
+    const r=repOf(S.horseId);const cur=(r.events||[]).slice();
+    if(ev.dataset.e==="__add"){const t=prompt("出来事を入力してください");if(!t)return;cur.push(t.trim())}
+    else{const k=ev.dataset.e;const i=cur.indexOf(k);if(i>=0)cur.splice(i,1);else cur.push(k)}
+    saveRep(S.horseId,{events:cur}).then(renderForm);return;
+  }
+  const p=e.target.closest("#phr button");
+  if(p){const ta=$("cm");const add=p.dataset.p;ta.value=(ta.value?ta.value.replace(/\s*$/,"")+"\n":"")+add;saveRep(S.horseId,{comment:ta.value})}
+});
+$("skipBar").addEventListener("click",e=>{
+  if(e.target.id!=="skipBtn")return;
+  const r=repOf(S.horseId);saveRep(S.horseId,{skip:!r.skip}).then(renderHorse);
+});
+$("cmpBody").addEventListener("click",e=>{
+  const k=S.composeOwner;if(!k)return;
+  const id=e.target.id;
+  if(id==="aCopy")copyText(buildText(k));
+  else if(id==="aShare")shareAll(k);
+  else if(id==="aPhoto")sharePhotosOnly(k);
+  else if(id==="aPrint")printReport(k);
+  else if(id==="aSent")toggleSent(k);
 });
 $("vClose").addEventListener("click",closeViewer);
 $("vDate").addEventListener("change",e=>{if(S.viewer&&e.target.value)changeDate(S.viewer,e.target.value)});
@@ -586,6 +984,7 @@ document.addEventListener("click",e=>{
   const id=e.target.id;
   if(id==="retryBtn"||id==="pumpBtn"){pump();if(!navigator.onLine)toast("オフラインです")}
   else if(id==="reloadBtn")location.reload();
+  else if(id==="wiBtn"){S.panel=false;renderSync();openWI()}
   else if(id==="logoutBtn"){
     if(S.queue.length&&!confirm("送信待ちの写真が "+S.queue.length+" 枚あります。\nログアウトしても端末には残りますが、送信は次のログインまで止まります。ログアウトしますか？"))return;
     if(!S.queue.length&&!confirm("ログアウトしますか？"))return;
@@ -596,12 +995,114 @@ window.addEventListener("online",()=>{S.online=true;renderSync();pump()});
 window.addEventListener("offline",()=>{S.online=false;renderSync()});
 document.addEventListener("visibilitychange",()=>{
   if(document.visibilityState!=="visible"||!S.user)return;
-  if(S.monthYm!==ymOf(Date.now()))listenMonth();   // 月が変わったら切り替え
-  if(S.horsesYear!==new Date().getFullYear()){const c=lsGet(LS_HORSES);if(c){try{setHorses(JSON.parse(c),S.horsesFrom);render()}catch(e){}}}   // 年が変わったら区分を繰り上げ
+  if(S.ymAuto&&S.ym!==ymOf(Date.now()))setYm(ymOf(Date.now()));
+  if(S.horsesYear!==new Date().getFullYear()){const c=lsGet(LS_HORSES);if(c){try{setHorses(JSON.parse(c),S.horsesFrom);render()}catch(e){}}}
   pump();
 });
 setInterval(()=>{if(S.queue.length)pump()},60000);
 
+/* ---------- 体重のまとめ取り込み ---------- */
+let wiRows=[];
+function openWI(){$("wiText").value="";$("wiPreview").innerHTML="";$("wiApply").disabled=true;$("wi").hidden=false;wiRows=[]}
+function closeWI(){$("wi").hidden=true}
+function normName(n){return String(n).replace(/[\s　]/g,"").replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/^[#＃]?\d+[\.．]?/,"")}
+function findHorseByName(n){
+  const q=normName(n);if(!q)return null;let exact=null,part=null;
+  S.horses.forEach(h=>{
+    const hn=normName(h.name);
+    if(hn===q){if(!exact)exact=h}
+    else if(!part&&(hn.indexOf(q)>=0||q.indexOf(hn)>=0)&&Math.min(hn.length,q.length)>=4&&(/\d{4}$/.test(hn)===/\d{4}$/.test(q)))part=h;
+  });
+  return exact||part;
+}
+function parseMonth(t,defYear){
+  t=String(t).trim().replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));
+  let m=t.match(/(\d{4})[\/\-年\.](\d{1,2})/);if(m)return m[1]+"-"+pad(+m[2]);
+  m=t.match(/^(\d{1,2})\s*月?$/)||t.match(/(\d{1,2})月/);if(m&&+m[1]>=1&&+m[1]<=12)return defYear+"-"+pad(+m[1]);
+  m=t.match(/^(\d{2})[\/\-\.](\d{1,2})$/);if(m)return "20"+m[1]+"-"+pad(+m[2]);
+  return null;
+}
+function addMonthsTo(dateStr,n){
+  const d=new Date(dateStr);if(isNaN(d))return null;
+  const y=d.getFullYear(),m=d.getMonth()+n;
+  return (y+Math.floor(m/12))+"-"+pad((m%12+12)%12+1);
+}
+function wiParse(){
+  const txt=$("wiText").value.trim();const defYear=String(S.ym).slice(0,4);wiRows=[];const errs=[];
+  const lines=txt.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  if(!lines.length){$("wiPreview").innerHTML='<div class="note">貼り付けてから「内容を確認」を押してください。</div>';$("wiApply").disabled=true;return}
+  const split=l=>{const a=l.split(/\t|,|、|｜|\|/).map(x=>x.trim()).filter(x=>x!=="");return a.length>1?l.split(/\t|,|、|｜|\|/).map(x=>x.trim()):l.split(/[\s　]+/)};
+  const first=split(lines[0]);
+  const ageCols=first.map((x,i)=>{const m=String(x).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).match(/^(\d{1,2})\s*[ヶヵかカケ]\s*月/);return m?{i,n:+m[1]}:null}).filter(Boolean);
+  const birthCol=first.findIndex(x=>/生年月日|誕生|生年|生まれ/.test(x));
+  const headMonths=first.map(x=>parseMonth(x,defYear));
+  const isAge=ageCols.length>=2;
+  const nHead=headMonths.filter(Boolean).length;
+  const isHeader=!isAge&&nHead>=1&&nHead>=first.length-1;
+  if(isAge){
+    lines.slice(1).forEach(l=>{
+      const c=split(l);const name=c[0];if(!name)return;
+      const h=findHorseByName(name);if(!h){errs.push("「"+name+"」に一致する馬がありません");return}
+      let birth=h.birthDate||"";
+      if(birthCol>=0&&c[birthCol]){const d=String(c[birthCol]).replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0)).match(/(\d{4})[\/\-年\.](\d{1,2})[\/\-月\.](\d{1,2})/);if(d)birth=d[1]+"-"+pad(+d[2])+"-"+pad(+d[3])}
+      if(!birth){errs.push("「"+h.name+"」の生年月日が分からないため月齢を月に換算できません");return}
+      ageCols.forEach(a=>{
+        const w=parseFloat(String(c[a.i]==null?"":c[a.i]).replace(/[^\d.]/g,""));
+        const k=addMonthsTo(birth,a.n);
+        if(k&&!isNaN(w)&&w>0)wiRows.push({h,ym:k,w:Math.round(w),age:a.n});
+      });
+    });
+  }else if(isHeader){
+    const months=headMonths.filter(Boolean);
+    lines.slice(1).forEach(l=>{
+      const c=split(l);const h=findHorseByName(c[0]);
+      if(!h){errs.push("「"+c[0]+"」に一致する馬がありません");return}
+      c.slice(1).forEach((v,i)=>{
+        const w=parseFloat(String(v).replace(/[^\d.]/g,""));const k=months[i];
+        if(k&&!isNaN(w)&&w>0)wiRows.push({h,ym:k,w:Math.round(w)});
+      });
+    });
+  }else{
+    lines.forEach(l=>{
+      const c=split(l);
+      if(c.length<3){errs.push("形が読めません："+l);return}
+      const h=findHorseByName(c[0]);const k=parseMonth(c[1],defYear);const w=parseFloat(String(c[2]).replace(/[^\d.]/g,""));
+      if(!h){errs.push("「"+c[0]+"」に一致する馬がありません");return}
+      if(!k){errs.push("月が読めません："+c[1]);return}
+      if(isNaN(w)){errs.push("体重が読めません："+c[2]);return}
+      wiRows.push({h,ym:k,w:Math.round(w)});
+    });
+  }
+  let html=wiRows.length?'<div class="wline">'+wiRows.length+"件を取り込みます</div>":"";
+  wiRows.forEach(r=>{
+    const cur=(r.ym===S.ym&&S.repMonth[String(r.h.id)])?S.repMonth[String(r.h.id)].weight:"";
+    html+='<div class="drow"><span class="badge '+catClass(catAt(r.h,r.ym))+'">'+esc(catAt(r.h,r.ym))+'</span><span class="n">'+esc(r.h.name)+'</span><span class="s">'+esc(ymLabel(r.ym))+(r.age!==undefined?"（"+r.age+"か月）":"")+'</span><span class="w">'+r.w+"kg</span>"+(cur&&Number(cur)!==r.w?'<span class="s" style="color:var(--err)">現在 '+esc(cur)+"</span>":"")+"</div>";
+  });
+  if(errs.length)html+='<div class="note" style="color:var(--err);margin-top:8px">'+errs.map(esc).join("<br>")+"</div>";
+  $("wiPreview").innerHTML=html||'<div class="note">読み取れる行がありませんでした。形式をご確認ください。</div>';
+  $("wiApply").disabled=!wiRows.length;
+}
+async function wiApply(){
+  if(!wiRows.length)return;
+  $("wiApply").disabled=true;toast("取り込んでいます…",0);
+  try{
+    for(let i=0;i<wiRows.length;i+=400){
+      const b=fbDb.batch();
+      wiRows.slice(i,i+400).forEach(r=>{
+        b.set(fbDb.collection(COL_REPORTS).doc(repId(r.ym,r.h.id)),
+          {ym:r.ym,horseId:String(r.h.id),weight:String(r.w),at:Date.now(),by:(S.user&&S.user.email)||""},{merge:true});
+      });
+      await b.commit();
+    }
+    closeWI();toast(wiRows.length+"件の体重を取り込みました");
+  }catch(e){console.error(e);toast(errMsg(e));$("wiApply").disabled=false}
+}
+$("wiClose").addEventListener("click",closeWI);
+$("wiCheck").addEventListener("click",wiParse);
+$("wiApply").addEventListener("click",wiApply);
+$("wi").addEventListener("click",e=>{if(e.target.id==="wi")closeWI()});
+
+/* ---------- ログイン ---------- */
 $("loginForm").addEventListener("submit",e=>{
   e.preventDefault();const em=$("em").value.trim(),pw=$("pw").value;const er=$("loginErr");er.hidden=true;
   if(!em||!pw){er.textContent="メールアドレスとパスワードを入力してください。";er.hidden=false;return}
@@ -621,8 +1122,10 @@ $("resetBtn").addEventListener("click",()=>{
 /* ---------- 起動 ---------- */
 if(!fbAuth)render();
 else fbAuth.onAuthStateChanged(async u=>{
-  [unsubHorses,unsubMonth,unsubHorse].forEach(f=>{if(f)try{f()}catch(e){}});unsubHorses=unsubMonth=unsubHorse=null;
-  S.user=u||null;S.view="home";S.horseId=null;S.panel=false;S.dataErr=null;S.upErr=null;
+  [unsubHorses,unsubMonth,unsubHorse,unsubRep,unsubSent,unsubRepHorse].forEach(f=>{if(f)try{f()}catch(e){}});
+  unsubHorses=unsubMonth=unsubHorse=unsubRep=unsubSent=unsubRepHorse=null;
+  S.user=u||null;S.view="home";S.horseId=null;S.composeOwner=null;S.panel=false;S.dataErr=null;S.upErr=null;
+  S.ym=ymOf(Date.now());S.ymAuto=true;
   if(u){await loadQueue();listenHorses();listenMonth();render();pump()}
   else render();
 });
